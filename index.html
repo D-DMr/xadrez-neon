@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Neon Chess | Premium Platform</title>
+    <title>Neon Chess | Premium</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♞</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -250,6 +250,8 @@
             document.getElementById(viewId).classList.add('active');
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             if(btnElement) btnElement.classList.add('active');
+            // Se mudar para o jogo sem ter clicado em jogar, inicia um jogo casual por defeito
+            if(viewId === 'play-view' && board.length === 0) startGame('pvc'); 
         }
 
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
@@ -295,8 +297,4 @@
             closeModal('login-modal'); updateProfileUI(); showToast("Login efetuado!");
         }
 
-        // --- ADMIN ---
-        let adminTargetEmail = null;
-        function openAdminLogin() { openModal('admin-login-modal'); }
-        function checkAdmin() {
-            if (document.getElementById('admin-pass').value === ADMIN_PASSWORD) { closeModal('admin-log
+        // --- ADMIN
