@@ -1,162 +1,256 @@
-let channel = null;
-let myOnlineColor = null;
-let isOnlineGame = false;
-let isWaitingForMatch = false;
+// --- BASE DE DADOS LOCAL ---
+function getDB() { return JSON.parse(localStorage.getItem('neon_db')) || {}; }
+function saveDB(db) { localStorage.setItem('neon_db', JSON.stringify(db)); }
+let currentUserEmail = localStorage.getItem('current_email') || null;
+const ADMIN_PASSWORD = "admin";
 
+function showToast(msg, color = 'var(--accent)') {
+    const toast = document.getElementById('toast');
+    toast.innerText = msg;
+    toast.style.background = color;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+function switchView(viewId) {
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+    document.getElementById(viewId).classList.add('active');
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    if(event && event.currentTarget) event.currentTarget.classList.add('active');
+}
+
+function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+// --- PERFIL ---
+function updateProfileUI() {
+    const db = getDB();
+    let name = "Convidado", pts = 1200, wins = 0, losses = 0;
+
+    if (currentUserEmail && db[currentUserEmail]) {
+        name = db[currentUserEmail].name;
+        pts = db[currentUserEmail].points;
+        wins = db[currentUserEmail].wins || 0;
+        losses = db[currentUserEmail].losses || 0;
+    } else {
+        pts = parseInt(localStorage.getItem('guest_points') || '1200');
+    }
+
+    const total = wins + losses;
+    const winrate = total > 0 ? Math.round((wins / total) * 100) : 0;
+
+    document.getElementById('dash-name').innerText = name;
+    document.getElementById('dash-avatar').innerText = name.charAt(0).toUpperCase();
+    document.getElementById('dash-rating').innerText = pts;
+    document.getElementById('dash-total').innerText = total;
+    document.getElementById('dash-winrate').innerText = winrate + '%';
+    document.getElementById('dash-wins-text').innerText = wins + ' Vitórias';
+    document.getElementById('dash-losses-text').innerText = losses + ' Derrotas';
+    document.getElementById('dash-winrate-bar').style.width = winrate + '%';
+
+    document.getElementById('sidebar-avatar').innerText = name.charAt(0).toUpperCase();
+    document.getElementById('game-name').innerText = name;
+    document.getElementById('game-avatar').innerText = name.charAt(0).toUpperCase();
+    document.getElementById('game-rating').innerText = pts;
+}
+
+function openLogin() {
+    if (currentUserEmail) {
+        if (confirm("Terminar sessão?")) {
+            currentUserEmail = null;
+            localStorage.removeItem('current_email');
+            updateProfileUI();
+        }
+    } else { openModal('login-modal'); }
+}
+
+function doLogin() {
+    const email = document.getElementById('login-email').value.trim().toLowerCase();
+    const name = document.getElementById('login-name').value.trim();
+    if (!email || !name) return showToast("Preenche todos os campos", "var(--danger)");
+
+    const db = getDB();
+    if (!db[email]) db[email] = { name: name, points: 1200, wins: 0, losses: 0 };
+    else if (db[email].name !== name) {
+        if(!confirm("Nome diferente. Atualizar?")) return;
+        db[email].name = name;
+    }
+
+    saveDB(db);
+    currentUserEmail = email;
+    localStorage.setItem('current_email', email);
+    closeModal('login-modal');
+    updateProfileUI();
+    showToast("Login efetuado!");
+}
+
+// --- ADMIN ---
+let adminTargetEmail = null;
+function openAdminLogin() { openModal('admin-login-modal'); }
+function checkAdmin() {
+    if (document.getElementById('admin-pass').value === ADMIN_PASSWORD) {
+        closeModal('admin-login-modal'); openModal('admin-dashboard');
+    } else { showToast("Password Incorreta", "var(--danger)"); }
+}
+
+function searchPlayer() {
+    const search = document.getElementById('admin-search').value.trim().toLowerCase();
+    const db = getDB();
+    let found = null;
+    for (let email in db) { if (db[email].name.toLowerCase() === search) { found = email; break; } }
+    if (found) {
+        adminTargetEmail = found;
+        document.getElementById('admin-target-name').innerText = db[found].name;
+        document.getElementById('admin-target-pts').innerText = db[found].points;
+        document.getElementById('admin-result').style.display = 'block';
+    } else { showToast("Jogador não encontrado", "var(--danger)"); document.getElementById('admin-result').style.display = 'none'; }
+}
+
+function modifyPoints(action) {
+    if (!adminTargetEmail) return showToast("Procura um jogador primeiro", "var(--danger)");
+    const amt = parseInt(document.getElementById('admin-amount').value);
+    if (isNaN(amt) || amt <= 0) return showToast("Quantidade inválida", "var(--danger)");
+
+    const db = getDB();
+    if (action === 'add') db[adminTargetEmail].points += amt;
+    else db[adminTargetEmail].points = Math.max(0, db[adminTargetEmail].points - amt);
+    
+    saveDB(db);
+    document.getElementById('admin-target-pts').innerText = db[adminTargetEmail].points;
+    document.getElementById('admin-amount').value = '';
+    if(currentUserEmail === adminTargetEmail) updateProfileUI();
+    showToast(`Pontos ${action === 'add' ? 'adicionados' : 'removidos'}!`);
+}
+
+// --- MOTOR DE XADREZ E RELÓGIO ---
 const boardEl = document.getElementById('board');
-const turnText = document.getElementById('turn-text');
-const turnDot = document.getElementById('turn-dot');
-const moveListEl = document.getElementById('move-list');
-const victoryScreen = document.getElementById('victory-screen');
-const victoryTitle = document.getElementById('victory-title');
-const victorySubtitle = document.getElementById('victory-subtitle');
-
 let board = new Array(64).fill(null);
-let turn = 'w';
-let selectedSquare = null;
-let legalMovesForSelected = [];
-let history = [];
-let algebraicHistory = [];
-let moveNumber = 1;
-let isFlipped = false;
-let gameMode = 'pvc';
-let isGameOver = false;
-let enPassantTarget = null;
-let pendingPromotion = null;
-let fireworksInterval = null;
-let animationId = null;
+let turn = 'w', selectedSquare = null, legalMovesForSelected = [], history = [], moveNumber = 1, isFlipped = false, gameMode = 'pvc', isGameOver = false, enPassantTarget = null, pendingPromotion = null;
+let channel = null, myOnlineColor = null, isOnlineGame = false;
+let timeWhite = 600, timeBlack = 600, timerInterval = null;
 
 const initialBoard = [
-    'r','n','b','q','k','b','n','r',
-    'p','p','p','p','p','p','p','p',
-    null,null,null,null,null,null,null,null,
-    null,null,null,null,null,null,null,null,
-    null,null,null,null,null,null,null,null,
-    null,null,null,null,null,null,null,null,
-    'P','P','P','P','P','P','P','P',
-    'R','N','B','Q','K','B','N','R'
+    'r','n','b','q','k','b','n','r', 'p','p','p','p','p','p','p','p',
+    null,null,null,null,null,null,null,null, null,null,null,null,null,null,null,null,
+    null,null,null,null,null,null,null,null, null,null,null,null,null,null,null,null,
+    'P','P','P','P','P','P','P','P', 'R','N','B','Q','K','B','N','R'
 ];
-
 const pieceValues = { 'p': 10, 'n': 30, 'b': 30, 'r': 50, 'q': 90, 'k': 900 };
 
 function initBoard() {
-    board = [...initialBoard];
-    turn = 'w';
-    selectedSquare = null;
-    legalMovesForSelected = [];
-    history = [];
-    algebraicHistory = [];
-    moveNumber = 1;
-    enPassantTarget = null;
-    isGameOver = false;
-    moveListEl.innerHTML = '';
-    victoryScreen.style.display = 'none';
-    if (fireworksInterval) clearInterval(fireworksInterval);
-    if (animationId) cancelAnimationFrame(animationId);
-    updateUI();
-    renderBoard();
+    board = [...initialBoard]; turn = 'w'; selectedSquare = null; legalMovesForSelected = []; history = []; moveNumber = 1; enPassantTarget = null; isGameOver = false;
+    timeWhite = 600; timeBlack = 600;
+    document.getElementById('move-list').innerHTML = ''; 
+    startClock();
+    renderBoard(); updateGameStatus();
+}
+
+function startClock() {
+    if (timerInterval) clearInterval(timerInterval);
+    updateClockUI();
+    timerInterval = setInterval(() => {
+        if (isGameOver) return;
+        if (turn === 'w') timeWhite--;
+        else timeBlack--;
+        
+        if (timeWhite <= 0 || timeBlack <= 0) {
+            isGameOver = true;
+            clearInterval(timerInterval);
+            showToast(`Tempo esgotado! Vencedor: ${timeWhite <= 0 ? 'Pretas' : 'Brancas'}`, "var(--danger)");
+            updateStats(timeWhite <= 0 ? 'loss' : 'win');
+        }
+        updateClockUI();
+    }, 1000);
+}
+
+function updateClockUI() {
+    const format = (t) => `${Math.floor(t / 60)}:${(t % 60).toString().padStart(2, '0')}`;
+    const cTop = document.getElementById('clock-top'), cBot = document.getElementById('clock-bottom');
+    
+    if (isFlipped) {
+        cTop.innerText = format(timeWhite);
+        cBot.innerText = format(timeBlack);
+        cTop.classList.toggle('active', turn === 'w');
+        cBot.classList.toggle('active', turn === 'b');
+    } else {
+        cTop.innerText = format(timeBlack);
+        cBot.innerText = format(timeWhite);
+        cTop.classList.toggle('active', turn === 'b');
+        cBot.classList.toggle('active', turn === 'w');
+    }
 }
 
 function startGame(mode) {
     gameMode = mode;
-    document.getElementById('menu-screen').style.opacity = '0';
-    setTimeout(() => {
-        document.getElementById('menu-screen').style.display = 'none';
-        if (mode === 'online') {
-            isOnlineGame = true;
-            document.getElementById('waiting-screen').style.display = 'flex';
-            startOnlineMatchmaking();
-        } else {
-            isOnlineGame = false;
-            document.getElementById('game-container').style.display = 'flex';
-            initBoard();
-        }
-    }, 400);
+    switchView('play-view');
+    if (timerInterval) clearInterval(timerInterval);
+
+    if (mode === 'online') {
+        isOnlineGame = true;
+        document.getElementById('opp-name').innerText = "À espera...";
+        channel = new BroadcastChannel('neon_platform_premium');
+        channel.postMessage({ type: 'searching' });
+        channel.onmessage = (e) => {
+            const d = e.data;
+            if (d.type === 'searching' && !myOnlineColor) {
+                myOnlineColor = 'white'; 
+                channel.postMessage({ type: 'match_found', color: 'black', name: "Oponente" }); 
+                startOnline("Oponente");
+            } else if (d.type === 'match_found') {
+                myOnlineColor = d.color; startOnline(d.name || "Oponente");
+            } else if (d.type === 'move' && isOnlineGame) {
+                applyOnlineMove(d.move);
+            } else if (d.type === 'resign') {
+                isGameOver = true; showToast("Oponente desistiu. Ganhaste!", "var(--success)"); updateStats('win');
+            }
+        };
+    } else {
+        isOnlineGame = false;
+        document.getElementById('opp-name').innerText = "Computador (IA)";
+        document.getElementById('opp-rating').innerText = "1500 ELO (Casual)";
+        isFlipped = false;
+        initBoard();
+    }
 }
 
-function startOnlineMatchmaking() {
-    isWaitingForMatch = true;
-    channel = new BroadcastChannel('neon_chess_lobby');
-    channel.postMessage({ type: 'searching' });
-
-    channel.onmessage = (event) => {
-        const data = event.data;
-        if (data.type === 'searching' && isWaitingForMatch) {
-            myOnlineColor = 'white'; 
-            isWaitingForMatch = false;
-            channel.postMessage({ type: 'match_found', color: 'black' }); 
-            startOnlineBoard();
-        } else if (data.type === 'match_found' && isWaitingForMatch) {
-            myOnlineColor = data.color;
-            isWaitingForMatch = false;
-            startOnlineBoard();
-        } else if (data.type === 'move' && isOnlineGame) {
-            applyOnlineMove(data.move);
-        } else if (data.type === 'reset' && isOnlineGame) {
-            initBoard();
-        } else if (data.type === 'resign' && isOnlineGame) {
-            isGameOver = true;
-            showVictory(`Oponente desistiu. Vencedor: Tu`, true);
-        }
-    };
-}
-
-function startOnlineBoard() {
-    document.getElementById('waiting-screen').style.display = 'none';
-    document.getElementById('game-container').style.display = 'flex';
+function startOnline(oppName) {
+    document.getElementById('opp-name').innerText = oppName;
+    document.getElementById('opp-rating').innerText = "Ranked";
     if (myOnlineColor === 'black') isFlipped = true;
     initBoard();
 }
 
-function cancelMatchmaking() {
-    if (channel) { channel.close(); channel = null; }
-    isWaitingForMatch = false;
-    document.getElementById('waiting-screen').style.display = 'none';
-    document.getElementById('menu-screen').style.display = 'flex';
-    document.getElementById('menu-screen').style.opacity = '1';
+function applyOnlineMove(m) {
+    board[m.to] = m.piece; board[m.from] = null; turn = turn === 'w' ? 'b' : 'w';
+    renderBoard(); checkGameState(); updateClockUI();
 }
 
-function applyOnlineMove(move) {
-    board[move.to] = move.piece;
-    board[move.from] = null;
-    if (move.isEnPassant) board[move.to + (move.piece === 'P' ? 8 : -8)] = null;
-    enPassantTarget = move.enPassantTarget;
-    turn = turn === 'w' ? 'b' : 'w';
-    selectedSquare = null;
-    legalMovesForSelected = [];
-    renderBoard();
-    checkGameState();
-}
-
-function getPseudoLegalMoves(pos, piece, currentBoard, epTarget) {
-    let moves = [];
-    const row = Math.floor(pos / 8), col = pos % 8, isWhite = piece === piece.toUpperCase();
-    const addMove = (r, c) => {
+function getPseudoMoves(pos, piece, cb, ep) {
+    let moves = []; const row = Math.floor(pos / 8), col = pos % 8, isW = piece === piece.toUpperCase();
+    const add = (r, c) => {
         if (r >= 0 && r < 8 && c >= 0 && c < 8) {
-            const targetPos = r * 8 + c, targetPiece = currentBoard[targetPos];
-            if (!targetPiece || (isWhite ? targetPiece === targetPiece.toLowerCase() : targetPiece === targetPiece.toUpperCase())) {
-                moves.push({ from: pos, to: targetPos, piece, captured: targetPiece });
-            }
+            const tPos = r * 8 + c, tPiece = cb[tPos];
+            if (!tPiece || (isW ? tPiece === tPiece.toLowerCase() : tPiece === tPiece.toUpperCase())) moves.push({ from: pos, to: tPos, piece, captured: tPiece });
         }
     };
     const p = piece.toLowerCase();
     if (p === 'p') {
-        const dir = isWhite ? -1 : 1, startRow = isWhite ? 6 : 1;
-        if (row + dir >= 0 && row + dir < 8 && !currentBoard[(row + dir) * 8 + col]) {
+        const dir = isW ? -1 : 1, start = isW ? 6 : 1;
+        if (row + dir >= 0 && row + dir < 8 && !cb[(row + dir) * 8 + col]) {
             moves.push({ from: pos, to: (row + dir) * 8 + col, piece });
-            if (row === startRow && !currentBoard[(row + 2 * dir) * 8 + col]) moves.push({ from: pos, to: (row + 2 * dir) * 8 + col, piece });
+            if (row === start && !cb[(row + 2 * dir) * 8 + col]) moves.push({ from: pos, to: (row + 2 * dir) * 8 + col, piece });
         }
         for (const dc of [-1, 1]) {
             if (col + dc >= 0 && col + dc < 8) {
-                const targetPos = (row + dir) * 8 + (col + dc);
+                const tPos = (row + dir) * 8 + (col + dc);
                 if (row + dir >= 0 && row + dir < 8) {
-                    const targetPiece = currentBoard[targetPos];
-                    if (targetPiece && (isWhite ? targetPiece === targetPiece.toLowerCase() : targetPiece === targetPiece.toUpperCase())) moves.push({ from: pos, to: targetPos, piece, captured: targetPiece });
-                    if (targetPos === epTarget) moves.push({ from: pos, to: targetPos, piece, captured: isWhite ? 'p' : 'P', isEnPassant: true });
+                    const tPiece = cb[tPos];
+                    if (tPiece && (isW ? tPiece === tPiece.toLowerCase() : tPiece === tPiece.toUpperCase())) moves.push({ from: pos, to: tPos, piece, captured: tPiece });
+                    if (tPos === ep) moves.push({ from: pos, to: tPos, piece, captured: isW ? 'p' : 'P', isEnPassant: true });
                 }
             }
         }
-    } else if (p === 'n') { [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]].forEach(([dr, dc]) => addMove(row + dr, col + dc)); }
+    } else if (p === 'n') { [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]].forEach(([dr, dc]) => add(row + dr, col + dc)); }
     else if (p === 'b' || p === 'r' || p === 'q') {
         const dirs = [];
         if (p === 'b' || p === 'q') dirs.push([-1,-1],[-1,1],[1,-1],[1,1]);
@@ -164,115 +258,121 @@ function getPseudoLegalMoves(pos, piece, currentBoard, epTarget) {
         for (let [dr, dc] of dirs) {
             let r = row + dr, c = col + dc;
             while (r >= 0 && r < 8 && c >= 0 && c < 8) {
-                const targetPos = r * 8 + c, targetPiece = currentBoard[targetPos];
-                if (!targetPiece) moves.push({ from: pos, to: targetPos, piece });
+                const tPos = r * 8 + c, tPiece = cb[tPos];
+                if (!tPiece) moves.push({ from: pos, to: tPos, piece });
                 else {
-                    if (isWhite ? targetPiece === targetPiece.toLowerCase() : targetPiece === targetPiece.toUpperCase()) moves.push({ from: pos, to: targetPos, piece, captured: targetPiece });
+                    if (isW ? tPiece === tPiece.toLowerCase() : tPiece === tPiece.toUpperCase()) moves.push({ from: pos, to: tPos, piece, captured: tPiece });
                     break;
                 }
                 r += dr; c += dc;
             }
         }
-    } else if (p === 'k') {
-        for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) if (dr !== 0 || dc !== 0) addMove(row + dr, col + dc);
-    }
+    } else if (p === 'k') { for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) if (dr !== 0 || dc !== 0) add(row + dr, col + dc); }
     return moves;
 }
 
-function getLegalMoves(pos, piece, currentBoard, epTarget) {
-    return getPseudoLegalMoves(pos, piece, currentBoard, epTarget).filter(move => {
-        const testBoard = [...currentBoard];
-        testBoard[move.to] = piece;
-        testBoard[move.from] = null;
-        if (move.isEnPassant) testBoard[piece === piece.toUpperCase() ? move.to + 8 : move.to - 8] = null;
-        return !isKingInCheck(piece === piece.toUpperCase() ? 'w' : 'b', testBoard);
+function getLegalMoves(pos, piece, cb, ep) {
+    return getPseudoMoves(pos, piece, cb, ep).filter(m => {
+        const tb = [...cb]; tb[m.to] = piece; tb[m.from] = null;
+        if (m.isEnPassant) tb[piece === piece.toUpperCase() ? m.to + 8 : m.to - 8] = null;
+        return !isCheck(piece === piece.toUpperCase() ? 'w' : 'b', tb);
     });
 }
 
-function isKingInCheck(color, currentBoard) {
-    const kingPiece = color === 'w' ? 'K' : 'k', kingPos = currentBoard.indexOf(kingPiece);
-    if (kingPos === -1) return false;
-    const enemyColor = color === 'w' ? 'b' : 'w';
+function isCheck(color, cb) {
+    const k = color === 'w' ? 'K' : 'k', pos = cb.indexOf(k);
+    if (pos === -1) return false;
+    const e = color === 'w' ? 'b' : 'w';
     for (let i = 0; i < 64; i++) {
-        const piece = currentBoard[i];
-        if (piece && (enemyColor === 'w' ? piece === piece.toUpperCase() : piece === piece.toLowerCase())) {
-            if (getPseudoLegalMoves(i, piece, currentBoard, null).some(m => m.to === kingPos)) return true;
+        const p = cb[i];
+        if (p && (e === 'w' ? p === p.toUpperCase() : p === p.toLowerCase())) {
+            if (getPseudoMoves(i, p, cb, null).some(m => m.to === pos)) return true;
         }
     }
     return false;
 }
 
 function checkGameState() {
-    let hasLegalMoves = false;
+    let hasMoves = false;
     for (let i = 0; i < 64; i++) {
-        const piece = board[i];
-        if (piece && (turn === 'w' ? piece === piece.toUpperCase() : piece === piece.toLowerCase())) {
-            if (getLegalMoves(i, piece, board, enPassantTarget).length > 0) { hasLegalMoves = true; break; }
+        const p = board[i];
+        if (p && (turn === 'w' ? p === p.toUpperCase() : p === p.toLowerCase())) {
+            if (getLegalMoves(i, p, board, enPassantTarget).length > 0) { hasMoves = true; break; }
         }
     }
-    const inCheck = isKingInCheck(turn, board);
-    if (!hasLegalMoves) {
+    if (!hasMoves) {
         isGameOver = true;
-        const winnerIsWhite = turn === 'b';
-        let isWin = false;
-        if (isOnlineGame) isWin = (winnerIsWhite && myOnlineColor === 'white') || (!winnerIsWhite && myOnlineColor === 'black');
-        else isWin = winnerIsWhite; // O jogador local joga de brancas contra a IA
-        
-        showVictory(inCheck ? `Xeque-Mate! Vencedor: ${turn === 'w' ? 'Pretas' : 'Brancas'}` : "Empate (Afogamento)", isWin);
+        clearInterval(timerInterval);
+        if (isCheck(turn, board)) {
+            const winColor = turn === 'w' ? 'Pretas' : 'Brancas';
+            showToast(`Xeque-Mate! Vitória das ${winColor}`, "var(--success)");
+            updateStats(turn === 'w' ? 'loss' : 'win');
+        } else {
+            showToast("Empate (Afogamento)");
+        }
     }
-    updateUI();
+    updateGameStatus();
 }
 
-function updateUI() {
-    if (!isOnlineGame || myOnlineColor === turn) {
-        turnText.innerText = isGameOver ? "Fim de Jogo" : `Vez das ${turn === 'w' ? 'Brancas' : 'Pretas'}`;
-    } else {
-        turnText.innerText = `Vez das ${turn === 'w' ? 'Brancas' : 'Pretas'} (Inimigo)`;
-    }
-    turnDot.classList.toggle('active', turn === 'w');
+function updateGameStatus() {
+    document.getElementById('game-status').innerText = isGameOver ? "Fim de Jogo" : `Vez das ${turn === 'w' ? 'Brancas' : 'Pretas'}`;
 }
 
 function renderBoard() {
     boardEl.innerHTML = '';
-    const inCheck = !isGameOver && isKingInCheck(turn, board);
-    const kingPos = board.indexOf(turn === 'w' ? 'K' : 'k');
+    const inCheck = !isGameOver && isCheck(turn, board);
+    const kPos = board.indexOf(turn === 'w' ? 'K' : 'k');
+    
     for (let i = 0; i < 64; i++) {
-        const actualIndex = isFlipped ? (63 - i) : i, r = Math.floor(actualIndex / 8), c = actualIndex % 8;
-        const square = document.createElement('div');
-        square.className = `square ${(r + c) % 2 === 0 ? 'light' : 'dark'}`;
-        square.dataset.index = actualIndex;
+        const act = isFlipped ? (63 - i) : i;
+        const r = Math.floor(act / 8), c = act % 8;
+        const sq = document.createElement('div');
+        sq.className = `square ${(r + c) % 2 === 0 ? 'light' : 'dark'}`;
         
-        if (selectedSquare === actualIndex) square.style.backgroundColor = 'rgba(0, 243, 255, 0.6)';
-        if (algebraicHistory.length > 0) {
-            const last = algebraicHistory[algebraicHistory.length-1];
-            if (last && (last.from === actualIndex || last.to === actualIndex)) square.classList.add('last-move');
-        }
-        const move = legalMovesForSelected.find(m => m.to === actualIndex);
-        if (move) square.classList.add(move.captured ? 'capture-highlight' : 'highlight');
-        if (inCheck && actualIndex === kingPos) square.classList.add('in-check');
+        sq.setAttribute('data-file', String.fromCharCode(97 + c));
+        sq.setAttribute('data-rank', 8 - r);
+
+        if (selectedSquare === act) sq.style.backgroundColor = 'rgba(59, 130, 246, 0.5)';
         
-        const piece = board[actualIndex];
-        if (piece) {
-            square.innerText = getPieceChar(piece); 
-            square.classList.add(piece === piece.toUpperCase() ? 'piece-w' : 'piece-b');
+        if (history.length > 0) {
+            const last = history[history.length-1];
+            if (last && (last.from === act || last.to === act)) sq.classList.add('last-move');
         }
-        square.onclick = () => handleSquareClick(actualIndex);
-        boardEl.appendChild(square);
+        
+        const move = legalMovesForSelected.find(m => m.to === act);
+        if (move) sq.classList.add(move.captured ? 'highlight-capture' : 'highlight-dot');
+        if (inCheck && act === kPos) sq.classList.add('in-check');
+        
+        const p = board[act];
+        if (p) sq.innerHTML = `<span class="piece ${p === p.toUpperCase() ? 'piece-w' : 'piece-b'}">${getPieceChar(p)}</span>`; 
+        
+        sq.onclick = () => handleSquareClick(act);
+        boardEl.appendChild(sq);
     }
+}
+
+function getPieceChar(p) {
+    const style = localStorage.getItem('pieceStyle') || 'classic';
+    const THEMES = {
+        classic: { 'K': '♔', 'Q': '♕', 'R': '♖', 'B': '♗', 'N': '♘', 'P': '♙', 'k': '♚', 'q': '♛', 'r': '♜', 'b': '♝', 'n': '♞', 'p': '♟' },
+        modern: { 'K': '♚', 'Q': '♛', 'R': '♜', 'B': '♝', 'N': '♞', 'P': '♟', 'k': '♚', 'q': '♛', 'r': '♜', 'b': '♝', 'n': '♞', 'p': '♟' },
+        outline: { 'K': '♔', 'Q': '♕', 'R': '♖', 'B': '♗', 'N': '♘', 'P': '♙', 'k': '♔', 'q': '♕', 'r': '♖', 'b': '♗', 'n': '♘', 'p': '♙' },
+        letters: { 'K': 'K', 'Q': 'Q', 'R': 'R', 'B': 'B', 'N': 'N', 'P': 'P', 'k': 'k', 'q': 'q', 'r': 'r', 'b': 'b', 'n': 'n', 'p': 'p' }
+    };
+    return THEMES[style][p] || p;
 }
 
 function handleSquareClick(idx) {
     if (isGameOver || (isOnlineGame && turn !== myOnlineColor) || (gameMode === 'pvc' && turn === 'b')) return;
-    const clickedPiece = board[idx];
+    const clicked = board[idx];
     if (selectedSquare !== null) {
         const move = legalMovesForSelected.find(m => m.to === idx);
         if (move) { executeMove(move); return; }
     }
-    if (clickedPiece) {
-        const isWhitePiece = clickedPiece === clickedPiece.toUpperCase();
-        if ((turn === 'w' && isWhitePiece) || (turn === 'b' && !isWhitePiece)) {
-            selectedSquare = idx;
-            legalMovesForSelected = getLegalMoves(idx, clickedPiece, board, enPassantTarget);
+    if (clicked) {
+        const isW = clicked === clicked.toUpperCase();
+        if ((turn === 'w' && isW) || (turn === 'b' && !isW)) {
+            selectedSquare = idx; legalMovesForSelected = getLegalMoves(idx, clicked, board, enPassantTarget);
         } else { selectedSquare = null; legalMovesForSelected = []; }
     } else { selectedSquare = null; legalMovesForSelected = []; }
     renderBoard();
@@ -280,257 +380,163 @@ function handleSquareClick(idx) {
 
 function executeMove(move) {
     const isPawn = move.piece.toLowerCase() === 'p';
-    const isPromotionRank = (move.piece === 'P' && Math.floor(move.to / 8) === 0) || (move.piece === 'p' && Math.floor(move.to / 8) === 7);
-    if (isPawn && isPromotionRank) {
-        pendingPromotion = move;
-        document.getElementById('promo-modal').style.display = 'flex';
-        return;
-    }
+    const isProm = (move.piece === 'P' && Math.floor(move.to / 8) === 0) || (move.piece === 'p' && Math.floor(move.to / 8) === 7);
+    if (isPawn && isProm) { pendingPromotion = move; openModal('promo-modal'); return; }
     finalizeMove(move);
 }
 
-function selectPromotion(pieceType) {
-    document.getElementById('promo-modal').style.display = 'none';
+function selectPromotion(type) {
+    closeModal('promo-modal');
     if (pendingPromotion) {
-        pendingPromotion.piece = pendingPromotion.piece === 'P' ? pieceType.toUpperCase() : pieceType.toLowerCase();
-        finalizeMove(pendingPromotion);
-        pendingPromotion = null;
+        pendingPromotion.piece = pendingPromotion.piece === 'P' ? type.toUpperCase() : type.toLowerCase();
+        finalizeMove(pendingPromotion); pendingPromotion = null;
     }
 }
 
 function finalizeMove(move) {
-    history.push({ board: [...board], turn, enPassantTarget, moveNumber });
-    board[move.to] = move.piece;
-    board[move.from] = null;
+    history.push({ board: [...board], turn, enPassantTarget });
+    board[move.to] = move.piece; board[move.from] = null;
     if (move.isEnPassant) board[move.piece === 'P' ? move.to + 8 : move.to - 8] = null;
-
     enPassantTarget = null;
-    if (move.piece.toLowerCase() === 'p' && Math.abs(move.to - move.from) === 16) {
-        enPassantTarget = (move.to + move.from) / 2;
-    }
+    if (move.piece.toLowerCase() === 'p' && Math.abs(move.to - move.from) === 16) enPassantTarget = (move.to + move.from) / 2;
 
-    const notation = `${move.piece.toUpperCase()}${String.fromCharCode(97 + (move.from % 8))}${8 - Math.floor(move.from / 8)}-${String.fromCharCode(97 + (move.to % 8))}${8 - Math.floor(move.to / 8)}`;
-    algebraicHistory.push({ from: move.from, to: move.to, notation: notation });
+    const note = `${move.piece.toUpperCase()}${String.fromCharCode(97 + (move.from % 8))}${8 - Math.floor(move.from / 8)}-${String.fromCharCode(97 + (move.to % 8))}${8 - Math.floor(move.to / 8)}`;
     
-    if (turn === 'b') {
-        const li = document.createElement('li');
-        li.innerHTML = `<span>${moveNumber}.</span> ${notation}`;
-        moveListEl.appendChild(li);
-        moveNumber++;
+    if (turn === 'b') { 
+        const li = document.createElement('li'); 
+        li.innerHTML = `<span class="num">${moveNumber}.</span> <span class="move">${note}</span>`; 
+        document.getElementById('move-list').appendChild(li); moveNumber++; 
     } else {
-        const lastLi = moveListEl.lastElementChild;
-        if (lastLi) lastLi.innerHTML += ` ${notation}`;
-        else {
-            const li = document.createElement('li');
-            li.innerHTML = `<span>${moveNumber}.</span> ... ${notation}`;
-            moveListEl.appendChild(li);
-        }
+        const last = document.getElementById('move-list').lastElementChild;
+        if (last) last.innerHTML += ` <span class="move">${note}</span>`;
+        else { const li = document.createElement('li'); li.innerHTML = `<span class="num">${moveNumber}.</span> <span class="move">...</span> <span class="move">${note}</span>`; document.getElementById('move-list').appendChild(li); }
     }
 
-    turn = turn === 'w' ? 'b' : 'w';
-    selectedSquare = null;
-    legalMovesForSelected = [];
+    turn = turn === 'w' ? 'b' : 'w'; selectedSquare = null; legalMovesForSelected = [];
+    renderBoard(); checkGameState(); updateClockUI();
+
+    if (isOnlineGame && channel) channel.postMessage({ type: 'move', move: move });
     
-    renderBoard();
-    checkGameState();
-
-    if (isOnlineGame && channel) {
-        channel.postMessage({ type: 'move', move: move });
-    }
-
+    // IA (Apenas no modo Casual/PvC)
     if (gameMode === 'pvc' && turn === 'b' && !isGameOver) {
-        setTimeout(makeAIMove, 300);
+        setTimeout(makeAIMove, 500);
     }
 }
 
-function resetGame() { 
-    if (isGameOver) {
-        initBoard();
-    } else {
-        if (confirm("Queres mesmo começar um novo jogo? A partida atual será perdida.")) {
-            initBoard();
-            if (isOnlineGame && channel) channel.postMessage({ type: 'reset' });
-        }
-    }
+function toggleHistoryMobile() { document.getElementById('game-sidebar').classList.toggle('open'); }
+
+let confirmCallback = null;
+function showConfirm(title, msg, callback) {
+    document.getElementById('confirm-title').innerText = title;
+    document.getElementById('confirm-msg').innerText = msg;
+    openModal('confirm-modal');
+    confirmCallback = callback;
+}
+function closeConfirm(isOk) {
+    closeModal('confirm-modal');
+    if (confirmCallback) { if (isOk) confirmCallback(); confirmCallback = null; }
 }
 
-function resignGame() {
+function askNewGame() { showConfirm("Novo Jogo", "Queres reiniciar a partida?", () => initBoard()); }
+
+function askResign() {
     if (isGameOver) return;
-    if (confirm("Tens a certeza que queres desistir?")) {
+    showConfirm("Desistir", "Tens a certeza? Vais perder.", () => {
         isGameOver = true;
-        const winner = turn === 'w' ? 'Pretas' : 'Brancas';
-        showVictory(`Desististe. Vencedor: ${winner}`, false);
-        if (isOnlineGame && channel) {
-            channel.postMessage({ type: 'resign' });
-        }
+        clearInterval(timerInterval);
+        if (isOnlineGame && channel) channel.postMessage({ type: 'resign' });
+        updateStats('loss');
+        showToast("Desististe. Derrota.", "var(--danger)");
+    });
+}
+
+function updateStats(result) {
+    const db = getDB();
+    if (currentUserEmail && db[currentUserEmail]) {
+        if (result === 'win') { db[currentUserEmail].points += 20; db[currentUserEmail].wins++; }
+        if (result === 'loss') { db[currentUserEmail].points = Math.max(0, db[currentUserEmail].points - 15); db[currentUserEmail].losses++; }
+        saveDB(db); updateProfileUI();
+    } else {
+        let pts = parseInt(localStorage.getItem('guest_points') || '1200');
+        if (result === 'win') pts += 20;
+        if (result === 'loss') pts = Math.max(0, pts - 15);
+        localStorage.setItem('guest_points', pts);
+        updateProfileUI();
     }
 }
 
-function flipBoard() { isFlipped = !isFlipped; renderBoard(); }
-function toggleHistory() { document.getElementById('history-panel').classList.toggle('open'); }
-
+// --- INTELIGÊNCIA ARTIFICIAL (MINIMAX BÁSICO) ---
 function makeAIMove() {
     if (isGameOver) return;
-    let bestMove = null;
-    let bestScore = -Infinity;
-
+    let best = null, bestScore = -Infinity;
+    
     for (let i = 0; i < 64; i++) {
-        const piece = board[i];
-        if (piece && piece === piece.toLowerCase()) { 
-            const moves = getLegalMoves(i, piece, board, enPassantTarget);
-            for (let move of moves) {
-                const testBoard = [...board];
-                testBoard[move.to] = move.piece;
-                testBoard[move.from] = null;
-                if (move.isEnPassant) testBoard[move.to - 8] = null;
-
-                let score = evaluateBoard(testBoard);
-                if (isKingInCheck('b', testBoard)) score -= 50;
-                score += Math.random() * 5;
-
-                if (score > bestScore) {
-                    bestScore = score;
-                    bestMove = move;
-                }
+        const p = board[i];
+        if (p && p === p.toLowerCase()) { // Peças pretas
+            const moves = getLegalMoves(i, p, board, enPassantTarget);
+            for (let m of moves) {
+                const tb = [...board]; tb[m.to] = m.piece; tb[m.from] = null;
+                if (m.isEnPassant) tb[m.to - 8] = null;
+                
+                let sc = evalBoard(tb);
+                if (isCheck('b', tb)) sc -= 50; // Penaliza se o rei ficar em xeque
+                sc += Math.random() * 10; // Aleatoriedade para não ser sempre igual
+                
+                if (sc > bestScore) { bestScore = sc; best = m; }
             }
         }
     }
-    if (bestMove) executeMove(bestMove);
+    if (best) executeMove(best);
 }
 
-function evaluateBoard(currentBoard) {
-    let score = 0;
-    for (let piece of currentBoard) {
-        if (piece) {
-            const val = pieceValues[piece.toLowerCase()];
-            if (piece === piece.toLowerCase()) score += val;
-            else score -= val;
+function evalBoard(cb) {
+    let sc = 0;
+    for (let p of cb) {
+        if (p) {
+            const v = pieceValues[p.toLowerCase()];
+            if (p === p.toLowerCase()) sc += v; // Pontos para pretas
+            else sc -= v; // Pontos para brancas
         }
     }
-    return score; 
+    return sc;
 }
 
-function showVictory(text, isWin) {
-    victoryTitle.innerText = isWin ? "VITÓRIA!" : "DERROTA";
-    victoryTitle.style.color = isWin ? "#00f3ff" : "#ff3333";
-    victoryTitle.style.background = isWin ? "linear-gradient(90deg, #fff, #00f3ff)" : "linear-gradient(90deg, #fff, #ff3333)";
+// --- DEFINIÇÕES E TEMAS ---
+function applySettings() {
+    const ui = document.getElementById('set-theme').value;
+    const pStyle = document.getElementById('set-pieces').value;
+    const bStyle = document.getElementById('set-board').value;
     
-    victorySubtitle.innerText = text;
-    victoryScreen.style.display = 'flex';
+    localStorage.setItem('uiTheme', ui);
+    localStorage.setItem('pieceStyle', pStyle);
+    localStorage.setItem('boardStyle', bStyle);
+
+    if (ui === 'light') document.body.classList.add('light-mode');
+    else document.body.classList.remove('light-mode');
+
+    const boards = {
+        classic: { light: '#ebecd0', dark: '#779556' },
+        dark: { light: '#2a2a30', dark: '#101014' },
+        cyberpunk: { light: '#2b3b52', dark: '#0f1620' },
+        emerald: { light: '#e0f2f1', dark: '#4db6ac' },
+        purple: { light: '#f3e5f5', dark: '#ab47bc' }
+    };
+
+    document.documentElement.style.setProperty('--board-light', boards[bStyle].light);
+    document.documentElement.style.setProperty('--board-dark', boards[bStyle].dark);
     
-    if (isWin) {
-        startFireworks();
-    } else {
-        startCryingEmojis();
-    }
+    if (board.length > 0) renderBoard();
 }
 
-function closeVictory() {
-    victoryScreen.style.display = 'none';
+function loadSettings() {
+    document.getElementById('set-theme').value = localStorage.getItem('uiTheme') || 'dark';
+    document.getElementById('set-pieces').value = localStorage.getItem('pieceStyle') || 'classic';
+    document.getElementById('set-board').value = localStorage.getItem('boardStyle') || 'classic';
+    applySettings();
+}
+
+window.addEventListener('DOMContentLoaded', () => {
     initBoard();
-    document.getElementById('menu-screen').style.display = 'flex';
-    document.getElementById('menu-screen').style.opacity = '1';
-    document.getElementById('game-container').style.display = 'none';
-    if (channel) { channel.close(); channel = null; }
-}
-
-// Animação de Fogos de Artifício
-function startFireworks() {
-    const canvas = document.getElementById('fireworks-canvas');
-    const ctx = canvas.getContext('2d');
-    let width = canvas.width = window.innerWidth;
-    let height = canvas.height = window.innerHeight;
-    let particles = [];
-
-    class Particle {
-        constructor(x, y, color) {
-            this.x = x; this.y = y; this.color = color;
-            const angle = Math.random() * Math.PI * 2;
-            const speed = Math.random() * 4 + 1;
-            this.vx = Math.cos(angle) * speed; this.vy = Math.sin(angle) * speed;
-            this.life = 1; this.decay = Math.random() * 0.015 + 0.01;
-        }
-        update() {
-            this.x += this.vx; this.y += this.vy;
-            this.vx *= 0.96; this.vy *= 0.96; this.vy += 0.05;
-            this.life -= this.decay;
-        }
-        draw() {
-            ctx.beginPath(); ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(${this.color}, ${this.life})`; ctx.fill();
-        }
-    }
-
-    function createExplosion(x, y) {
-        const colors = ['0, 243, 255', '184, 0, 255', '255, 255, 255'];
-        const color = colors[Math.floor(Math.random() * colors.length)];
-        for (let i = 0; i < 50; i++) particles.push(new Particle(x, y, color));
-    }
-
-    function loop() {
-        ctx.fillStyle = 'rgba(10, 10, 12, 0.2)';
-        ctx.fillRect(0, 0, width, height);
-        if (Math.random() < 0.05 && particles.length < 400) createExplosion(Math.random() * width, Math.random() * height * 0.6);
-        for (let i = particles.length - 1; i >= 0; i--) {
-            const p = particles[i];
-            p.update(); p.draw();
-            if (p.life <= 0) particles.splice(i, 1);
-        }
-        animationId = requestAnimationFrame(loop);
-    }
-    loop();
-}
-
-// Animação de Emojis a Chorar (Derrota)
-function startCryingEmojis() {
-    const canvas = document.getElementById('fireworks-canvas');
-    const ctx = canvas.getContext('2d');
-    let width = canvas.width = window.innerWidth;
-    let height = canvas.height = window.innerHeight;
-    let particles = [];
-
-    class EmojiParticle {
-        constructor() {
-            this.x = Math.random() * width;
-            this.y = -50;
-            this.vx = (Math.random() - 0.5) * 2;
-            this.vy = Math.random() * 3 + 2;
-            this.size = Math.random() * 20 + 20;
-            this.emoji = ['😭', '😢', '💧', '😿'][Math.floor(Math.random() * 4)];
-            this.rotation = Math.random() * 360;
-            this.rotSpeed = (Math.random() - 0.5) * 5;
-        }
-        update() {
-            this.x += this.vx; this.y += this.vy;
-            this.rotation += this.rotSpeed;
-            if (this.y > height + 50) {
-                this.y = -50;
-                this.x = Math.random() * width;
-            }
-        }
-        draw() {
-            ctx.save();
-            ctx.translate(this.x, this.y);
-            ctx.rotate(this.rotation * Math.PI / 180);
-            ctx.font = `${this.size}px Arial`;
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillText(this.emoji, 0, 0);
-            ctx.restore();
-        }
-    }
-
-    for (let i = 0; i < 40; i++) {
-        particles.push(new EmojiParticle());
-        particles[i].y = Math.random() * height; // Distribuir inicialmente pelo ecrã
-    }
-
-    function loop() {
-        ctx.clearRect(0, 0, width, height); // Limpa o fundo para os emojis não deixarem rasto
-        for (let p of particles) {
-            p.update(); p.draw();
-        }
-        animationId = requestAnimationFrame(loop);
-    }
-    loop();
-}
+    loadSettings();
+    updateProfileUI();
+});

@@ -6,158 +6,11 @@
     <title>Neon Chess | Premium Platform</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♞</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-base: #0b0e14;
-            --bg-panel: #151b26;
-            --bg-hover: #1f2937;
-            --text-main: #f3f4f6;
-            --text-muted: #9ca3af;
-            --accent: #10b981; /* Verde estilo Chess.com */
-            --accent-blue: #3b82f6;
-            --danger: #ef4444;
-            --border: rgba(255, 255, 255, 0.08);
-            --board-light: #ebecd0; /* Madeira clara / Mármore */
-            --board-dark: #779556;  /* Madeira escura / Verde clássico */
-            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-            --glass: blur(16px);
-        }
-
-        body.light-mode {
-            --bg-base: #f8f9fa; --bg-panel: #ffffff; --bg-hover: #f3f4f6;
-            --text-main: #111827; --text-muted: #6b7280; --border: rgba(0, 0, 0, 0.08);
-            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; transition: background-color 0.3s, color 0.3s; }
-        html, body { height: 100%; height: 100dvh; overflow: hidden; }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg-base); color: var(--text-main); display: flex; }
-
-        /* --- SIDEBAR --- */
-        .sidebar { width: 70px; background: var(--bg-panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; padding: 20px 0; z-index: 100; flex-shrink: 0; }
-        .logo-icon { font-size: 2rem; color: var(--accent); margin-bottom: 30px; }
-        .nav-btn { width: 50px; height: 50px; border-radius: 12px; background: transparent; border: none; color: var(--text-muted); display: flex; justify-content: center; align-items: center; margin-bottom: 10px; cursor: pointer; transition: 0.2s; }
-        .nav-btn:hover, .nav-btn.active { background: var(--bg-hover); color: var(--text-main); }
-        .nav-btn svg { width: 24px; height: 24px; fill: currentColor; }
-        
-        .sidebar-bottom { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 15px; width: 100%; }
-        .avatar-small { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-blue), var(--accent)); display: flex; justify-content: center; align-items: center; font-weight: bold; color: #fff; cursor: pointer; }
-
-        /* --- MAIN LAYOUT --- */
-        .main-wrapper { flex: 1; display: flex; flex-direction: column; height: 100%; overflow: hidden; }
-        .view-section { display: none; width: 100%; height: 100%; overflow-y: auto; }
-        .view-section.active { display: flex; flex-direction: column; }
-
-        /* --- DASHBOARD --- */
-        #home-view { padding: 40px; align-items: center; }
-        .dash-container { width: 100%; max-width: 1100px; display: grid; grid-template-columns: 350px 1fr; gap: 30px; }
-        
-        /* Profile Card (Igual à imagem) */
-        .profile-card { background: var(--bg-panel); border-radius: 16px; padding: 25px; box-shadow: var(--shadow); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 20px; }
-        .profile-header { display: flex; align-items: center; gap: 15px; }
-        .avatar-large { width: 80px; height: 80px; border-radius: 12px; background: linear-gradient(135deg, var(--accent-blue), var(--accent)); display: flex; justify-content: center; align-items: center; font-size: 2rem; font-weight: bold; color: #fff; }
-        .profile-info h2 { font-size: 1.5rem; margin-bottom: 5px; }
-        .profile-info p { color: var(--text-muted); font-size: 0.9rem; display: flex; align-items: center; gap: 5px; }
-        
-        .stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; background: var(--bg-base); padding: 15px; border-radius: 12px; text-align: center; }
-        .stat-box h4 { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 5px; text-transform: uppercase; }
-        .stat-box div { font-size: 1.2rem; font-weight: bold; }
-
-        .win-rate-bar { width: 100%; height: 10px; background: var(--danger); border-radius: 5px; overflow: hidden; display: flex; margin: 10px 0; }
-        .win-rate-fill { height: 100%; background: var(--accent); transition: width 0.5s; }
-
-        /* Ações de Jogo (Cards) */
-        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-content: start; }
-        .action-card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 16px; padding: 30px; text-align: center; cursor: pointer; transition: 0.2s; box-shadow: var(--shadow); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; }
-        .action-card:hover { transform: translateY(-5px); border-color: var(--accent); }
-        .action-card h2 { font-size: 1.3rem; }
-        .action-card p { color: var(--text-muted); font-size: 0.9rem; }
-        .icon-large { font-size: 3rem; }
-
-        /* --- GAME VIEW (Sala de Jogo) --- */
-        #play-view { background: #0f141e; flex-direction: row; justify-content: center; align-items: stretch; }
-        
-        .game-area { display: flex; flex-direction: column; flex: 1; max-width: 800px; padding: 20px; justify-content: center; }
-        
-        /* Layout do Tabuleiro (Jogador Topo, Tabuleiro, Jogador Fundo) */
-        .player-strip { display: flex; justify-content: space-between; align-items: center; background: var(--bg-panel); padding: 10px 15px; border-radius: 8px; margin: 5px 0; border: 1px solid var(--border); }
-        .player-details { display: flex; align-items: center; gap: 10px; }
-        .player-avatar { width: 35px; height: 35px; border-radius: 6px; background: var(--bg-hover); display: flex; justify-content: center; align-items: center; font-weight: bold; }
-        .clock { font-family: monospace; font-size: 1.5rem; font-weight: bold; background: var(--bg-base); padding: 5px 15px; border-radius: 6px; }
-        .clock.active { background: var(--accent); color: #000; }
-        
-        .board-container { width: 100%; aspect-ratio: 1/1; background: var(--bg-panel); padding: 5px; border-radius: 8px; box-shadow: var(--shadow); }
-        #board { display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr); width: 100%; height: 100%; }
-        
-        .square { display: flex; justify-content: center; align-items: center; position: relative; cursor: pointer; font-size: 9vw; }
-        @media (min-width: 600px) { .square { font-size: 55px; } }
-        .square.light { background-color: var(--board-light); color: #333; }
-        .square.dark { background-color: var(--board-dark); color: #333; }
-        
-        /* Peças com sombra 3D */
-        .piece { filter: drop-shadow(0px 3px 2px rgba(0,0,0,0.4)); z-index: 2; transition: transform 0.1s; }
-        .piece:hover { transform: scale(1.05); }
-        .piece-w { color: #ffffff; -webkit-text-stroke: 1px #333; }
-        .piece-b { color: #111111; -webkit-text-stroke: 1px #999; }
-
-        /* Coordenadas */
-        .square::before { content: attr(data-file); position: absolute; bottom: 2px; right: 4px; font-size: 0.55rem; font-weight: bold; opacity: 0.4; }
-        .square::after { content: attr(data-rank); position: absolute; top: 2px; left: 4px; font-size: 0.55rem; font-weight: bold; opacity: 0.4; }
-
-        /* Highlights */
-        .highlight-dot::before { content: ''; position: absolute; width: 30%; height: 30%; background: rgba(0,0,0,0.2); border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1; }
-        .highlight-capture::after { content: ''; position: absolute; width: 90%; height: 90%; border: 4px solid rgba(0,0,0,0.2); border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1; }
-        .in-check { background-color: rgba(239, 68, 68, 0.8) !important; }
-        .last-move { background-color: rgba(255, 255, 0, 0.4) !important; }
-
-        /* Painel Lateral (Histórico) */
-        .game-sidebar { width: 300px; background: var(--bg-panel); border-left: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
-        .move-history-title { padding: 15px; border-bottom: 1px solid var(--border); font-weight: bold; display: flex; justify-content: space-between; }
-        .move-list { list-style: none; flex: 1; overflow-y: auto; }
-        .move-list li { padding: 8px 15px; display: flex; font-family: monospace; font-size: 1rem; border-bottom: 1px solid rgba(255,255,255,0.02); }
-        .move-list li:nth-child(even) { background: rgba(255,255,255,0.02); }
-        .move-list .num { color: var(--text-muted); width: 40px; }
-        .move-list .move { width: 50%; }
-        
-        .game-actions { padding: 15px; border-top: 1px solid var(--border); display: flex; gap: 10px; }
-        .btn-game { flex: 1; padding: 12px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; background: var(--bg-hover); color: var(--text-main); transition: 0.2s; }
-        .btn-game:hover { background: #374151; }
-        .btn-game.danger { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
-        .btn-game.danger:hover { background: rgba(239, 68, 68, 0.4); }
-
-        /* --- MODAIS E TOASTS --- */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center; padding: 15px; }
-        .modal-box { background: var(--bg-panel); padding: 30px; border-radius: 16px; border: 1px solid var(--border); width: 100%; max-width: 400px; box-shadow: var(--shadow); }
-        .modal-box h2 { color: var(--text-main); margin-bottom: 20px; font-size: 1.5rem; text-align: center; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 8px; font-size: 0.9rem; color: var(--text-muted); }
-        .form-group input, .form-group select { width: 100%; padding: 12px; background: var(--bg-base); border: 1px solid var(--border); color: var(--text-main); border-radius: 8px; outline: none; font-size: 1rem; }
-        .form-group input:focus { border-color: var(--accent-blue); }
-        .btn-primary { width: 100%; padding: 15px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: 0.2s; margin-top: 10px; }
-        .btn-primary:hover { filter: brightness(1.1); }
-        .btn-secondary { width: 100%; padding: 15px; background: transparent; border: 1px solid var(--border); color: var(--text-main); border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 10px; }
-        
-        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--accent); color: #fff; padding: 12px 25px; border-radius: 8px; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.5); opacity: 0; transition: 0.3s; z-index: 2000; pointer-events: none; }
-        #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-
-        /* --- RESPONSIVIDADE --- */
-        @media (max-width: 900px) {
-            .dash-container { grid-template-columns: 1fr; padding-bottom: 80px; }
-            #play-view { flex-direction: column; padding-bottom: 60px; }
-            .game-sidebar { position: fixed; bottom: 0; left: 0; width: 100%; height: 250px; transform: translateY(100%); transition: transform 0.3s; z-index: 500; border-left: none; border-top: 1px solid var(--border); }
-            .game-sidebar.open { transform: translateY(0); }
-            .game-area { padding: 10px; }
-            .sidebar { width: 100%; height: 60px; position: fixed; bottom: 0; left: 0; flex-direction: row; justify-content: space-around; padding: 0; border-right: none; border-top: 1px solid var(--border); z-index: 600; }
-            .logo-icon, .sidebar-bottom { display: none; }
-            .nav-btn { margin-bottom: 0; width: 60px; height: 60px; border-radius: 0; }
-            .main-wrapper { height: calc(100dvh - 60px); padding-bottom: 0; }
-            #home-view { padding: 20px; }
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- SIDEBAR (Menu de Navegação) -->
+    <!-- SIDEBAR -->
     <aside class="sidebar">
         <div class="logo-icon">♞</div>
         <button class="nav-btn active" onclick="switchView('home-view')">
@@ -183,7 +36,6 @@
         <!-- VIEW: DASHBOARD -->
         <section id="home-view" class="view-section active">
             <div class="dash-container">
-                
                 <!-- Perfil -->
                 <div class="profile-card">
                     <div class="profile-header">
@@ -193,7 +45,6 @@
                             <p><span style="font-size: 1.2rem;">🇵🇹</span> Portugal</p>
                         </div>
                     </div>
-                    
                     <div class="stats-row">
                         <div class="stat-box">
                             <h4>Rating</h4>
@@ -208,7 +59,6 @@
                             <div style="color: var(--accent);" id="dash-winrate">0%</div>
                         </div>
                     </div>
-
                     <div>
                         <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 5px; color: var(--text-muted);">
                             <span id="dash-wins-text">0 Vitórias</span>
@@ -225,41 +75,35 @@
                     <div class="action-card" onclick="startGame('pvc')">
                         <div class="icon-large">🤖</div>
                         <h2>Jogar vs Computador</h2>
-                        <p>Treina as tuas táticas e aberturas contra o motor local.</p>
+                        <p>Modo Casual. Treina as tuas táticas contra o motor local.</p>
                     </div>
                     <div class="action-card" onclick="startGame('online')">
                         <div class="icon-large">🌐</div>
-                        <h2>Jogar Online</h2>
-                        <p>Encontra um adversário num servidor local.</p>
+                        <h2>Jogar Online (Ranked)</h2>
+                        <p>Encontra um adversário num servidor local. Ganha ELO!</p>
                     </div>
                 </div>
-
             </div>
         </section>
 
         <!-- VIEW: SALA DE JOGO -->
         <section id="play-view" class="view-section">
-            
-            <!-- ÁREA DO TABULEIRO -->
             <div class="game-area">
-                <!-- Oponente -->
                 <div class="player-strip">
                     <div class="player-details">
                         <div class="player-avatar">🤖</div>
                         <div>
                             <div style="font-weight: bold; font-size: 0.9rem;" id="opp-name">Oponente</div>
-                            <div style="font-size: 0.75rem; color: var(--text-muted);" id="opp-rating">1500</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);" id="opp-rating">---</div>
                         </div>
                     </div>
                     <div class="clock" id="clock-top">10:00</div>
                 </div>
 
-                <!-- Tabuleiro -->
                 <div class="board-container">
                     <div id="board"></div>
                 </div>
 
-                <!-- Jogador (Tu) -->
                 <div class="player-strip">
                     <div class="player-details">
                         <div class="player-avatar" id="game-avatar">G</div>
@@ -272,11 +116,10 @@
                 </div>
             </div>
 
-            <!-- SIDEBAR DO JOGO (Histórico) -->
             <div class="game-sidebar" id="game-sidebar">
                 <div class="move-history-title">
                     <span>Movimentos</span>
-                    <button class="btn-close-history" style="background: none; border: none; color: var(--text-main); cursor: pointer; display: none;" onclick="toggleHistoryMobile()">✖</button>
+                    <button class="btn-close-history" onclick="toggleHistoryMobile()">✖</button>
                 </div>
                 <ul class="move-list" id="move-list"></ul>
                 <div class="game-actions">
@@ -289,9 +132,9 @@
         <!-- VIEW: DEFINIÇÕES -->
         <section id="settings-view" class="view-section" style="padding: 40px; align-items: center;">
             <div class="profile-card" style="width: 100%; max-width: 500px;">
-                <h2 style="margin-bottom: 20px;">Definições</h2>
+                <h2 style="margin-bottom: 20px;">Definições de Estilo</h2>
                 <div class="form-group">
-                    <label>Interface</label>
+                    <label>Interface do Site</label>
                     <select id="set-theme" onchange="applySettings()">
                         <option value="dark">Escuro (Cyberpunk)</option>
                         <option value="light">Claro (Clássico)</option>
@@ -300,22 +143,24 @@
                 <div class="form-group">
                     <label>Estilo das Peças</label>
                     <select id="set-pieces" onchange="applySettings()">
-                        <option value="classic">Clássico (3D)</option>
+                        <option value="classic">Clássico (Unicode)</option>
                         <option value="modern">Neon Sólido</option>
+                        <option value="outline">Contorno</option>
                         <option value="letters">Letras (K, Q, R)</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Cor do Tabuleiro</label>
                     <select id="set-board" onchange="applySettings()">
-                        <option value="classic">Madeira Clássica</option>
+                        <option value="classic">Madeira (Clássico)</option>
                         <option value="dark">Neon Escuro</option>
                         <option value="cyberpunk">Azul Cyberpunk</option>
+                        <option value="emerald">Esmeralda</option>
+                        <option value="purple">Roxo Místico</option>
                     </select>
                 </div>
             </div>
         </section>
-
     </main>
 
     <!-- MODAIS -->
@@ -386,565 +231,6 @@
 
     <div id="toast">Notificação</div>
 
-    <script>
-        // --- BASE DE DADOS LOCAL ---
-        function getDB() { return JSON.parse(localStorage.getItem('neon_db')) || {}; }
-        function saveDB(db) { localStorage.setItem('neon_db', JSON.stringify(db)); }
-        
-        let currentUserEmail = localStorage.getItem('current_email') || null;
-        const ADMIN_PASSWORD = "admin";
-
-        function showToast(msg, color = 'var(--accent)') {
-            const toast = document.getElementById('toast');
-            toast.innerText = msg;
-            toast.style.background = color;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
-        }
-
-        function switchView(viewId) {
-            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
-            document.getElementById(viewId).classList.add('active');
-            
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            if(event && event.currentTarget) event.currentTarget.classList.add('active');
-        }
-
-        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
-        // --- PERFIL E ESTATÍSTICAS ---
-        function updateProfileUI() {
-            const db = getDB();
-            let name = "Convidado", pts = 1200, wins = 0, losses = 0;
-
-            if (currentUserEmail && db[currentUserEmail]) {
-                name = db[currentUserEmail].name;
-                pts = db[currentUserEmail].points;
-                wins = db[currentUserEmail].wins || 0;
-                losses = db[currentUserEmail].losses || 0;
-            } else {
-                pts = parseInt(localStorage.getItem('guest_points') || '1200');
-            }
-
-            const total = wins + losses;
-            const winrate = total > 0 ? Math.round((wins / total) * 100) : 0;
-
-            // Dashboard
-            document.getElementById('dash-name').innerText = name;
-            document.getElementById('dash-avatar').innerText = name.charAt(0).toUpperCase();
-            document.getElementById('dash-rating').innerText = pts;
-            document.getElementById('dash-total').innerText = total;
-            document.getElementById('dash-winrate').innerText = winrate + '%';
-            document.getElementById('dash-wins-text').innerText = wins + ' Vitórias';
-            document.getElementById('dash-losses-text').innerText = losses + ' Derrotas';
-            document.getElementById('dash-winrate-bar').style.width = winrate + '%';
-
-            // Sidebar e Jogo
-            document.getElementById('sidebar-avatar').innerText = name.charAt(0).toUpperCase();
-            document.getElementById('game-name').innerText = name;
-            document.getElementById('game-avatar').innerText = name.charAt(0).toUpperCase();
-            document.getElementById('game-rating').innerText = pts;
-        }
-
-        function openLogin() {
-            if (currentUserEmail) {
-                if (confirm("Terminar sessão?")) {
-                    currentUserEmail = null;
-                    localStorage.removeItem('current_email');
-                    updateProfileUI();
-                }
-            } else {
-                openModal('login-modal');
-            }
-        }
-
-        function doLogin() {
-            const email = document.getElementById('login-email').value.trim().toLowerCase();
-            const name = document.getElementById('login-name').value.trim();
-            if (!email || !name) return showToast("Preenche todos os campos", "var(--danger)");
-
-            const db = getDB();
-            if (!db[email]) db[email] = { name: name, points: 1200, wins: 0, losses: 0 };
-            else if (db[email].name !== name) {
-                if(!confirm("Nome diferente. Atualizar?")) return;
-                db[email].name = name;
-            }
-
-            saveDB(db);
-            currentUserEmail = email;
-            localStorage.setItem('current_email', email);
-            closeModal('login-modal');
-            updateProfileUI();
-            showToast("Login efetuado com sucesso!");
-        }
-
-        // --- ADMIN ---
-        let adminTargetEmail = null;
-        function openAdminLogin() { openModal('admin-login-modal'); }
-        
-        function checkAdmin() {
-            if (document.getElementById('admin-pass').value === ADMIN_PASSWORD) {
-                closeModal('admin-login-modal');
-                openModal('admin-dashboard');
-            } else {
-                showToast("Password Incorreta", "var(--danger)");
-            }
-        }
-
-        function searchPlayer() {
-            const search = document.getElementById('admin-search').value.trim().toLowerCase();
-            const db = getDB();
-            let found = null;
-            for (let email in db) {
-                if (db[email].name.toLowerCase() === search) { found = email; break; }
-            }
-            if (found) {
-                adminTargetEmail = found;
-                document.getElementById('admin-target-name').innerText = db[found].name;
-                document.getElementById('admin-target-pts').innerText = db[found].points;
-                document.getElementById('admin-result').style.display = 'block';
-            } else {
-                showToast("Jogador não encontrado", "var(--danger)");
-                document.getElementById('admin-result').style.display = 'none';
-            }
-        }
-
-        function modifyPoints(action) {
-            if (!adminTargetEmail) return showToast("Procura um jogador primeiro", "var(--danger)");
-            const amt = parseInt(document.getElementById('admin-amount').value);
-            if (isNaN(amt) || amt <= 0) return showToast("Quantidade inválida", "var(--danger)");
-
-            const db = getDB();
-            if (action === 'add') db[adminTargetEmail].points += amt;
-            else db[adminTargetEmail].points = Math.max(0, db[adminTargetEmail].points - amt);
-            
-            saveDB(db);
-            document.getElementById('admin-target-pts').innerText = db[adminTargetEmail].points;
-            document.getElementById('admin-amount').value = '';
-            if(currentUserEmail === adminTargetEmail) updateProfileUI();
-            showToast(`Pontos ${action === 'add' ? 'adicionados' : 'removidos'}!`);
-        }
-
-        // --- MOTOR DE XADREZ E RELÓGIO ---
-        const boardEl = document.getElementById('board');
-        let board = new Array(64).fill(null);
-        let turn = 'w', selectedSquare = null, legalMovesForSelected = [], history = [], moveNumber = 1, isFlipped = false, gameMode = 'pvc', isGameOver = false, enPassantTarget = null, pendingPromotion = null;
-        let channel = null, myOnlineColor = null, isOnlineGame = false;
-
-        // Relógios
-        let timeWhite = 600, timeBlack = 600; // 10 minutos
-        let timerInterval = null;
-        const clockTop = document.getElementById('clock-top');
-        const clockBottom = document.getElementById('clock-bottom');
-
-        const initialBoard = [
-            'r','n','b','q','k','b','n','r', 'p','p','p','p','p','p','p','p',
-            null,null,null,null,null,null,null,null, null,null,null,null,null,null,null,null,
-            null,null,null,null,null,null,null,null, null,null,null,null,null,null,null,null,
-            'P','P','P','P','P','P','P','P', 'R','N','B','Q','K','B','N','R'
-        ];
-        const pieceValues = { 'p': 10, 'n': 30, 'b': 30, 'r': 50, 'q': 90, 'k': 900 };
-
-        function initBoard() {
-            board = [...initialBoard]; turn = 'w'; selectedSquare = null; legalMovesForSelected = []; history = []; moveNumber = 1; enPassantTarget = null; isGameOver = false;
-            timeWhite = 600; timeBlack = 600;
-            document.getElementById('move-list').innerHTML = ''; 
-            startClock();
-            renderBoard(); updateGameStatus();
-        }
-
-        function startClock() {
-            if (timerInterval) clearInterval(timerInterval);
-            updateClockUI();
-            timerInterval = setInterval(() => {
-                if (isGameOver) return;
-                if (turn === 'w') timeWhite--;
-                else timeBlack--;
-                
-                if (timeWhite <= 0 || timeBlack <= 0) {
-                    isGameOver = true;
-                    clearInterval(timerInterval);
-                    showToast(`Tempo esgotado! Vencedor: ${timeWhite <= 0 ? 'Pretas' : 'Brancas'}`, "var(--danger)");
-                    updateStats(timeWhite <= 0 ? 'loss' : 'win');
-                }
-                updateClockUI();
-            }, 1000);
-        }
-
-        function updateClockUI() {
-            const format = (t) => {
-                const m = Math.floor(t / 60);
-                const s = t % 60;
-                return `${m}:${s.toString().padStart(2, '0')}`;
-            };
-            // Se estiver a jogar de pretas (flipped), inverte os relógios
-            if (isFlipped) {
-                clockTop.innerText = format(timeWhite);
-                clockBottom.innerText = format(timeBlack);
-                clockTop.classList.toggle('active', turn === 'w');
-                clockBottom.classList.toggle('active', turn === 'b');
-            } else {
-                clockTop.innerText = format(timeBlack);
-                clockBottom.innerText = format(timeWhite);
-                clockTop.classList.toggle('active', turn === 'b');
-                clockBottom.classList.toggle('active', turn === 'w');
-            }
-        }
-
-        function startGame(mode) {
-            gameMode = mode;
-            switchView('play-view');
-            if (mode === 'online') {
-                isOnlineGame = true;
-                document.getElementById('opp-name').innerText = "À espera...";
-                channel = new BroadcastChannel('neon_platform_premium');
-                channel.postMessage({ type: 'searching' });
-                channel.onmessage = (e) => {
-                    const d = e.data;
-                    if (d.type === 'searching' && !myOnlineColor) {
-                        myOnlineColor = 'white'; 
-                        channel.postMessage({ type: 'match_found', color: 'black', name: "Oponente" }); 
-                        startOnline("Oponente");
-                    } else if (d.type === 'match_found') {
-                        myOnlineColor = d.color; startOnline(d.name || "Oponente");
-                    } else if (d.type === 'move' && isOnlineGame) {
-                        applyOnlineMove(d.move);
-                    } else if (d.type === 'resign') {
-                        isGameOver = true; showToast("Oponente desistiu. Ganhaste!", "var(--success)"); updateStats('win');
-                    }
-                };
-            } else {
-                isOnlineGame = false;
-                document.getElementById('opp-name').innerText = "Computador (IA)";
-                document.getElementById('opp-rating').innerText = "1500 ELO";
-                if (isFlipped) { isFlipped = false; } // Joga sempre de brancas contra IA
-                initBoard();
-            }
-        }
-
-        function startOnline(oppName) {
-            document.getElementById('opp-name').innerText = oppName;
-            document.getElementById('opp-rating').innerText = "---";
-            if (myOnlineColor === 'black') isFlipped = true;
-            initBoard();
-        }
-
-        function applyOnlineMove(m) {
-            board[m.to] = m.piece; board[m.from] = null; turn = turn === 'w' ? 'b' : 'w';
-            renderBoard(); checkGameState();
-        }
-
-        function getPseudoMoves(pos, piece, cb, ep) {
-            let moves = []; const row = Math.floor(pos / 8), col = pos % 8, isW = piece === piece.toUpperCase();
-            const add = (r, c) => {
-                if (r >= 0 && r < 8 && c >= 0 && c < 8) {
-                    const tPos = r * 8 + c, tPiece = cb[tPos];
-                    if (!tPiece || (isW ? tPiece === tPiece.toLowerCase() : tPiece === tPiece.toUpperCase())) moves.push({ from: pos, to: tPos, piece, captured: tPiece });
-                }
-            };
-            const p = piece.toLowerCase();
-            if (p === 'p') {
-                const dir = isW ? -1 : 1, start = isW ? 6 : 1;
-                if (row + dir >= 0 && row + dir < 8 && !cb[(row + dir) * 8 + col]) {
-                    moves.push({ from: pos, to: (row + dir) * 8 + col, piece });
-                    if (row === start && !cb[(row + 2 * dir) * 8 + col]) moves.push({ from: pos, to: (row + 2 * dir) * 8 + col, piece });
-                }
-                for (const dc of [-1, 1]) {
-                    if (col + dc >= 0 && col + dc < 8) {
-                        const tPos = (row + dir) * 8 + (col + dc);
-                        if (row + dir >= 0 && row + dir < 8) {
-                            const tPiece = cb[tPos];
-                            if (tPiece && (isW ? tPiece === tPiece.toLowerCase() : tPiece === tPiece.toUpperCase())) moves.push({ from: pos, to: tPos, piece, captured: tPiece });
-                            if (tPos === ep) moves.push({ from: pos, to: tPos, piece, captured: isW ? 'p' : 'P', isEnPassant: true });
-                        }
-                    }
-                }
-            } else if (p === 'n') { [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]].forEach(([dr, dc]) => add(row + dr, col + dc)); }
-            else if (p === 'b' || p === 'r' || p === 'q') {
-                const dirs = [];
-                if (p === 'b' || p === 'q') dirs.push([-1,-1],[-1,1],[1,-1],[1,1]);
-                if (p === 'r' || p === 'q') dirs.push([-1,0],[1,0],[0,-1],[0,1]);
-                for (let [dr, dc] of dirs) {
-                    let r = row + dr, c = col + dc;
-                    while (r >= 0 && r < 8 && c >= 0 && c < 8) {
-                        const tPos = r * 8 + c, tPiece = cb[tPos];
-                        if (!tPiece) moves.push({ from: pos, to: tPos, piece });
-                        else {
-                            if (isW ? tPiece === tPiece.toLowerCase() : tPiece === tPiece.toUpperCase()) moves.push({ from: pos, to: tPos, piece, captured: tPiece });
-                            break;
-                        }
-                        r += dr; c += dc;
-                    }
-                }
-            } else if (p === 'k') { for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) if (dr !== 0 || dc !== 0) add(row + dr, col + dc); }
-            return moves;
-        }
-
-        function getLegalMoves(pos, piece, cb, ep) {
-            return getPseudoMoves(pos, piece, cb, ep).filter(m => {
-                const tb = [...cb]; tb[m.to] = piece; tb[m.from] = null;
-                if (m.isEnPassant) tb[piece === piece.toUpperCase() ? m.to + 8 : m.to - 8] = null;
-                return !isCheck(piece === piece.toUpperCase() ? 'w' : 'b', tb);
-            });
-        }
-
-        function isCheck(color, cb) {
-            const k = color === 'w' ? 'K' : 'k', pos = cb.indexOf(k);
-            if (pos === -1) return false;
-            const e = color === 'w' ? 'b' : 'w';
-            for (let i = 0; i < 64; i++) {
-                const p = cb[i];
-                if (p && (e === 'w' ? p === p.toUpperCase() : p === p.toLowerCase())) {
-                    if (getPseudoMoves(i, p, cb, null).some(m => m.to === pos)) return true;
-                }
-            }
-            return false;
-        }
-
-        function checkGameState() {
-            let hasMoves = false;
-            for (let i = 0; i < 64; i++) {
-                const p = board[i];
-                if (p && (turn === 'w' ? p === p.toUpperCase() : p === p.toLowerCase())) {
-                    if (getLegalMoves(i, p, board, enPassantTarget).length > 0) { hasMoves = true; break; }
-                }
-            }
-            if (!hasMoves) {
-                isGameOver = true;
-                clearInterval(timerInterval);
-                if (isCheck(turn, board)) {
-                    const winColor = turn === 'w' ? 'Pretas' : 'Brancas';
-                    showToast(`Xeque-Mate! Vitória das ${winColor}`, "var(--success)");
-                    updateStats(turn === 'w' ? 'loss' : 'win');
-                } else {
-                    showToast("Empate (Afogamento)");
-                }
-            }
-            updateGameStatus();
-        }
-
-        function updateGameStatus() {
-            document.getElementById('game-status').innerText = isGameOver ? "Fim de Jogo" : `Vez das ${turn === 'w' ? 'Brancas' : 'Pretas'}`;
-        }
-
-        function renderBoard() {
-            boardEl.innerHTML = '';
-            const inCheck = !isGameOver && isCheck(turn, board);
-            const kPos = board.indexOf(turn === 'w' ? 'K' : 'k');
-            
-            for (let i = 0; i < 64; i++) {
-                const act = isFlipped ? (63 - i) : i;
-                const r = Math.floor(act / 8), c = act % 8;
-                const sq = document.createElement('div');
-                sq.className = `square ${(r + c) % 2 === 0 ? 'light' : 'dark'}`;
-                
-                const file = String.fromCharCode(97 + c);
-                const rank = 8 - r;
-                sq.setAttribute('data-file', file);
-                sq.setAttribute('data-rank', rank);
-
-                if (selectedSquare === act) sq.style.backgroundColor = 'rgba(59, 130, 246, 0.5)';
-                
-                if (history.length > 0) {
-                    const last = history[history.length-1];
-                    if (last && (last.from === act || last.to === act)) sq.classList.add('last-move');
-                }
-                
-                const move = legalMovesForSelected.find(m => m.to === act);
-                if (move) sq.classList.add(move.captured ? 'highlight-capture' : 'highlight-dot');
-                if (inCheck && act === kPos) sq.classList.add('in-check');
-                
-                const p = board[act];
-                if (p) {
-                    sq.innerHTML = `<span class="piece ${p === p.toUpperCase() ? 'piece-w' : 'piece-b'}">${getPieceChar(p)}</span>`; 
-                }
-                sq.onclick = () => handleSquareClick(act);
-                boardEl.appendChild(sq);
-            }
-        }
-
-        function getPieceChar(p) {
-            const style = localStorage.getItem('pieceStyle') || 'classic';
-            const THEMES = {
-                classic: { 'K': '♔', 'Q': '♕', 'R': '♖', 'B': '♗', 'N': '♘', 'P': '♙', 'k': '♚', 'q': '♛', 'r': '♜', 'b': '♝', 'n': '♞', 'p': '♟' },
-                modern: { 'K': '♚', 'Q': '♛', 'R': '♜', 'B': '♝', 'N': '♞', 'P': '♟', 'k': '♚', 'q': '♛', 'r': '♜', 'b': '♝', 'n': '♞', 'p': '♟' },
-                letters: { 'K': 'K', 'Q': 'Q', 'R': 'R', 'B': 'B', 'N': 'N', 'P': 'P', 'k': 'k', 'q': 'q', 'r': 'r', 'b': 'b', 'n': 'n', 'p': 'p' }
-            };
-            return THEMES[style][p] || p;
-        }
-
-        function handleSquareClick(idx) {
-            if (isGameOver || (isOnlineGame && turn !== myOnlineColor) || (gameMode === 'pvc' && turn === 'b')) return;
-            const clicked = board[idx];
-            if (selectedSquare !== null) {
-                const move = legalMovesForSelected.find(m => m.to === idx);
-                if (move) { executeMove(move); return; }
-            }
-            if (clicked) {
-                const isW = clicked === clicked.toUpperCase();
-                if ((turn === 'w' && isW) || (turn === 'b' && !isW)) {
-                    selectedSquare = idx; legalMovesForSelected = getLegalMoves(idx, clicked, board, enPassantTarget);
-                } else { selectedSquare = null; legalMovesForSelected = []; }
-            } else { selectedSquare = null; legalMovesForSelected = []; }
-            renderBoard();
-        }
-
-        function executeMove(move) {
-            const isPawn = move.piece.toLowerCase() === 'p';
-            const isProm = (move.piece === 'P' && Math.floor(move.to / 8) === 0) || (move.piece === 'p' && Math.floor(move.to / 8) === 7);
-            if (isPawn && isProm) { pendingPromotion = move; openModal('promo-modal'); return; }
-            finalizeMove(move);
-        }
-
-        function selectPromotion(type) {
-            closeModal('promo-modal');
-            if (pendingPromotion) {
-                pendingPromotion.piece = pendingPromotion.piece === 'P' ? type.toUpperCase() : type.toLowerCase();
-                finalizeMove(pendingPromotion); pendingPromotion = null;
-            }
-        }
-
-        function finalizeMove(move) {
-            history.push({ board: [...board], turn, enPassantTarget });
-            board[move.to] = move.piece; board[move.from] = null;
-            if (move.isEnPassant) board[move.piece === 'P' ? move.to + 8 : move.to - 8] = null;
-            enPassantTarget = null;
-            if (move.piece.toLowerCase() === 'p' && Math.abs(move.to - move.from) === 16) enPassantTarget = (move.to + move.from) / 2;
-
-            const note = `${move.piece.toUpperCase()}${String.fromCharCode(97 + (move.from % 8))}${8 - Math.floor(move.from / 8)}-${String.fromCharCode(97 + (move.to % 8))}${8 - Math.floor(move.to / 8)}`;
-            
-            if (turn === 'b') { 
-                const li = document.createElement('li'); 
-                li.innerHTML = `<span class="num">${moveNumber}.</span> <span class="move">${note}</span>`; 
-                document.getElementById('move-list').appendChild(li); moveNumber++; 
-            } else {
-                const last = document.getElementById('move-list').lastElementChild;
-                if (last) last.innerHTML += ` <span class="move">${note}</span>`;
-                else { const li = document.createElement('li'); li.innerHTML = `<span class="num">${moveNumber}.</span> <span class="move">...</span> <span class="move">${note}</span>`; document.getElementById('move-list').appendChild(li); }
-            }
-
-            turn = turn === 'w' ? 'b' : 'w'; selectedSquare = null; legalMovesForSelected = [];
-            renderBoard(); checkGameState(); updateClockUI();
-
-            if (isOnlineGame && channel) channel.postMessage({ type: 'move', move: move });
-            if (gameMode === 'pvc' && turn === 'b' && !isGameOver) setTimeout(makeAIMove, 500);
-        }
-
-        // --- UI E CONTROLO ---
-        function toggleHistoryMobile() { document.getElementById('game-sidebar').classList.toggle('open'); }
-        
-        let confirmCallback = null;
-        function showConfirm(title, msg, callback) {
-            document.getElementById('confirm-title').innerText = title;
-            document.getElementById('confirm-msg').innerText = msg;
-            openModal('confirm-modal');
-            confirmCallback = callback;
-        }
-        function closeConfirm(isOk) {
-            closeModal('confirm-modal');
-            if (confirmCallback) { if (isOk) confirmCallback(); confirmCallback = null; }
-        }
-
-        function askNewGame() { showConfirm("Novo Jogo", "Queres reiniciar a partida?", () => initBoard()); }
-
-        function askResign() {
-            if (isGameOver) return;
-            showConfirm("Desistir", "Tens a certeza? Vais perder ELO.", () => {
-                isGameOver = true;
-                clearInterval(timerInterval);
-                if (isOnlineGame && channel) channel.postMessage({ type: 'resign' });
-                updateStats('loss');
-                showToast("Desististe. Derrota.", "var(--danger)");
-            });
-        }
-
-        function updateStats(result) {
-            const db = getDB();
-            if (currentUserEmail && db[currentUserEmail]) {
-                if (result === 'win') { db[currentUserEmail].points += 20; db[currentUserEmail].wins++; }
-                if (result === 'loss') { db[currentUserEmail].points = Math.max(0, db[currentUserEmail].points - 15); db[currentUserEmail].losses++; }
-                saveDB(db);
-                updateProfileUI();
-            } else {
-                let pts = parseInt(localStorage.getItem('guest_points') || '1200');
-                if (result === 'win') pts += 20;
-                if (result === 'loss') pts = Math.max(0, pts - 15);
-                localStorage.setItem('guest_points', pts);
-                updateProfileUI();
-            }
-        }
-
-        // --- IA ---
-        function makeAIMove() {
-            if (isGameOver) return;
-            let best = null, bestScore = -Infinity;
-            for (let i = 0; i < 64; i++) {
-                const p = board[i];
-                if (p && p === p.toLowerCase()) {
-                    const moves = getLegalMoves(i, p, board, enPassantTarget);
-                    for (let m of moves) {
-                        const tb = [...board]; tb[m.to] = m.piece; tb[m.from] = null;
-                        if (m.isEnPassant) tb[m.to - 8] = null;
-                        let sc = evalBoard(tb);
-                        if (isCheck('b', tb)) sc -= 50;
-                        sc += Math.random() * 10;
-                        if (sc > bestScore) { bestScore = sc; best = m; }
-                    }
-                }
-            }
-            if (best) executeMove(best);
-        }
-
-        function evalBoard(cb) {
-            let sc = 0;
-            for (let p of cb) {
-                if (p) {
-                    const v = pieceValues[p.toLowerCase()];
-                    if (p === p.toLowerCase()) sc += v;
-                    else sc -= v;
-                }
-            }
-            return sc;
-        }
-
-        // --- DEFINIÇÕES E TEMAS ---
-        function applySettings() {
-            const ui = document.getElementById('set-theme').value;
-            const pStyle = document.getElementById('set-pieces').value;
-            const bStyle = document.getElementById('set-board').value;
-            
-            localStorage.setItem('uiTheme', ui);
-            localStorage.setItem('pieceStyle', pStyle);
-            localStorage.setItem('boardStyle', bStyle);
-
-            if (ui === 'light') document.body.classList.add('light-mode');
-            else document.body.classList.remove('light-mode');
-
-            const boards = {
-                classic: { light: '#ebecd0', dark: '#779556' },
-                dark: { light: '#2a2a30', dark: '#101014' },
-                cyberpunk: { light: '#2b3b52', dark: '#0f1620' }
-            };
-
-            document.documentElement.style.setProperty('--board-light', boards[bStyle].light);
-            document.documentElement.style.setProperty('--board-dark', boards[bStyle].dark);
-            
-            if (board.length > 0) renderBoard();
-        }
-
-        function loadSettings() {
-            document.getElementById('set-theme').value = localStorage.getItem('uiTheme') || 'dark';
-            document.getElementById('set-pieces').value = localStorage.getItem('pieceStyle') || 'classic';
-            document.getElementById('set-board').value = localStorage.getItem('boardStyle') || 'classic';
-            applySettings();
-        }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            initBoard();
-            loadSettings();
-            updateProfileUI();
-        });
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
