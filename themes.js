@@ -1,4 +1,3 @@
-// Sistema de Temas e Preferências
 const THEMES = {
     pieces: {
         classic: { 'K': '♔', 'Q': '♕', 'R': '♖', 'B': '♗', 'N': '♘', 'P': '♙', 'k': '♚', 'q': '♛', 'r': '♜', 'b': '♝', 'n': '♞', 'p': '♟' },
@@ -15,30 +14,22 @@ const THEMES = {
 function loadSettings() {
     const pieceStyle = localStorage.getItem('pieceStyle') || 'classic';
     const boardStyle = localStorage.getItem('boardStyle') || 'dark';
-    
     document.getElementById('piece-style').value = pieceStyle;
     document.getElementById('board-style').value = boardStyle;
-    
     applyTheme();
 }
 
 function applyTheme() {
     const pieceStyle = document.getElementById('piece-style').value;
     const boardStyle = document.getElementById('board-style').value;
-
-    // Guardar escolhas
     localStorage.setItem('pieceStyle', pieceStyle);
     localStorage.setItem('boardStyle', boardStyle);
 
-    // Aplicar cores ao tabuleiro via CSS variables
     const boardColors = THEMES.boards[boardStyle];
     document.documentElement.style.setProperty('--board-light', boardColors.light);
     document.documentElement.style.setProperty('--board-dark', boardColors.dark);
 
-    // Atualizar as peças no ecrã
-    if (typeof renderBoard === 'function') {
-        renderBoard();
-    }
+    if (typeof renderBoard === 'function') renderBoard();
 }
 
 function getPieceChar(piece) {
@@ -46,10 +37,7 @@ function getPieceChar(piece) {
     return THEMES.pieces[style][piece] || '';
 }
 
-function openSettings() {
-    document.getElementById('settings-modal').style.display = 'flex';
-}
+function openSettings() { document.getElementById('settings-modal').style.display = 'flex'; }
+function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; }
 
-function closeSettings() {
-    document.getElementById('settings-modal').style.display = 'none';
-}
+window.addEventListener('DOMContentLoaded', loadSettings);

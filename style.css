@@ -2,8 +2,6 @@
     --bg: #0a0a0c; --surface: #121216; --text: #ffffff; --text-muted: #888888;
     --neon-cyan: #00f3ff; --neon-purple: #b800ff; --danger: #ff3333;
     --border: rgba(255,255,255,0.08);
-    
-    /* Variáveis do Tabuleiro (Mudam com o JS) */
     --board-light: #2a2a30; 
     --board-dark: #101014;
 }
@@ -46,7 +44,6 @@ body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var
 .square.light { background-color: var(--board-light); }
 .square.dark { background-color: var(--board-dark); }
 
-/* Peças (Estilos base) */
 .piece-w { color: #ffffff; text-shadow: 0 0 4px #000, 0 0 6px #000; }
 .piece-b { color: #000000; text-shadow: 0 0 4px var(--neon-cyan), 0 0 6px var(--neon-cyan); }
 

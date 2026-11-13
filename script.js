@@ -36,7 +36,6 @@ const initialBoard = [
     'P','P','P','P','P','P','P','P',
     'R','N','B','Q','K','B','N','R'
 ];
-
 const pieceValues = { 'p': 10, 'n': 30, 'b': 30, 'r': 50, 'q': 90, 'k': 900 };
 
 function initBoard() {
@@ -245,7 +244,6 @@ function renderBoard() {
         
         const piece = board[actualIndex];
         if (piece) {
-            // AQUI USA A FUNÇÃO DO THEMES.JS
             square.innerText = getPieceChar(piece); 
             square.classList.add(piece === piece.toUpperCase() ? 'piece-w' : 'piece-b');
         }
@@ -279,4 +277,23 @@ function executeMove(move) {
         document.getElementById('promo-modal').style.display = 'flex';
         return;
     }
-    finalizeMove
+    finalizeMove(move);
+}
+
+function selectPromotion(pieceType) {
+    document.getElementById('promo-modal').style.display = 'none';
+    if (pendingPromotion) {
+        pendingPromotion.piece = pendingPromotion.piece === 'P' ? pieceType.toUpperCase() : pieceType.toLowerCase();
+        finalizeMove(pendingPromotion);
+        pendingPromotion = null;
+    }
+}
+
+function finalizeMove(move) {
+    history.push({ board: [...board], turn, enPassantTarget, moveNumber });
+    board[move.to] = move.piece;
+    board[move.from] = null;
+    if (move.isEnPassant) board[move.piece === 'P' ? move.to + 8 : move.to - 8] = null;
+
+    enPassantTarget = null;
+    if (move.piece.toLowerCase() === 'p'
