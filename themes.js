@@ -14,14 +14,24 @@ const THEMES = {
 function loadSettings() {
     const pieceStyle = localStorage.getItem('pieceStyle') || 'classic';
     const boardStyle = localStorage.getItem('boardStyle') || 'dark';
-    document.getElementById('piece-style').value = pieceStyle;
-    document.getElementById('board-style').value = boardStyle;
+    
+    const pieceSelect = document.getElementById('piece-style');
+    const boardSelect = document.getElementById('board-style');
+    
+    if (pieceSelect) pieceSelect.value = pieceStyle;
+    if (boardSelect) boardSelect.value = boardStyle;
+    
     applyTheme();
 }
 
 function applyTheme() {
-    const pieceStyle = document.getElementById('piece-style').value;
-    const boardStyle = document.getElementById('board-style').value;
+    const pieceSelect = document.getElementById('piece-style');
+    const boardSelect = document.getElementById('board-style');
+    if (!pieceSelect || !boardSelect) return;
+
+    const pieceStyle = pieceSelect.value;
+    const boardStyle = boardSelect.value;
+
     localStorage.setItem('pieceStyle', pieceStyle);
     localStorage.setItem('boardStyle', boardStyle);
 
@@ -29,15 +39,16 @@ function applyTheme() {
     document.documentElement.style.setProperty('--board-light', boardColors.light);
     document.documentElement.style.setProperty('--board-dark', boardColors.dark);
 
-    if (typeof renderBoard === 'function') renderBoard();
+    // Chama o renderBoard apenas se o script do jogo já estiver carregado
+    if (typeof renderBoard === 'function' && board.length > 0) {
+        renderBoard();
+    }
 }
 
 function getPieceChar(piece) {
     const style = localStorage.getItem('pieceStyle') || 'classic';
-    return THEMES.pieces[style][piece] || '';
+    return THEMES.pieces[style][piece] || piece;
 }
 
 function openSettings() { document.getElementById('settings-modal').style.display = 'flex'; }
 function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; }
-
-window.addEventListener('DOMContentLoaded', loadSettings);

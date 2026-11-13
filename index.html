@@ -63,15 +63,14 @@
 
     <!-- HISTÓRICO -->
     <div id="history-panel">
-        <h3 style="margin-bottom: 15px; color: var(--neon-cyan); font-weight: 600;">Movimentos</h3>
+        <h3 style="margin-bottom: 15px; color: #00f3ff; font-weight: 600;">Movimentos</h3>
         <ul class="move-list" id="move-list"></ul>
     </div>
 
-    <!-- MENU DE DEFINIÇÕES / TEMAS -->
+    <!-- MENU DE DEFINIÇÕES -->
     <div id="settings-modal">
         <div class="settings-content">
             <h2>Personalização</h2>
-            
             <div class="setting-group">
                 <label>Estilo das Peças:</label>
                 <select id="piece-style" onchange="applyTheme()">
@@ -80,7 +79,6 @@
                     <option value="letters">Letras (K, Q, R)</option>
                 </select>
             </div>
-
             <div class="setting-group">
                 <label>Cor do Tabuleiro:</label>
                 <select id="board-style" onchange="applyTheme()">
@@ -89,7 +87,6 @@
                     <option value="blue">Azul Cyberpunk</option>
                 </select>
             </div>
-
             <button class="victory-btn" style="margin-top: 20px; padding: 10px 20px; font-size: 1rem;" onclick="closeSettings()">Voltar ao Jogo</button>
         </div>
     </div>
@@ -104,7 +101,15 @@
         </div>
     </div>
 
-    <script src="themes.js"></script>
+    <!-- OS SCRIPTS SÃO CARREGADOS AQUI -->
     <script src="script.js"></script>
+    <script src="themes.js"></script>
+    <script>
+        // Inicializa tudo de forma segura apenas quando o DOM estiver pronto
+        document.addEventListener('DOMContentLoaded', () => {
+            initBoard();
+            loadSettings();
+        });
+    </script>
 </body>
 </html>
