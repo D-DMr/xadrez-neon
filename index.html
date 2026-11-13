@@ -3,298 +3,303 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Neon Chess | Premium</title>
+    <title>Neon Chess</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♞</text></svg>">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg-base: #0b0e14; --bg-panel: #151b26; --bg-hover: #1f2937;
-            --text-main: #f3f4f6; --text-muted: #9ca3af;
-            --accent: #10b981; --accent-blue: #3b82f6; --danger: #ef4444;
-            --border: rgba(255, 255, 255, 0.08);
-            --board-light: #ebecd0; --board-dark: #779556;
-            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-        }
-        body.light-mode {
-            --bg-base: #f8f9fa; --bg-panel: #ffffff; --bg-hover: #f3f4f6;
-            --text-main: #111827; --text-muted: #6b7280; --border: rgba(0, 0, 0, 0.08);
-            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-        }
+        :root { --bg: #0b0e14; --panel: #151b26; --text: #fff; --muted: #9ca3af; --accent: #10b981; --blue: #3b82f6; --danger: #ef4444; --light: #ebecd0; --dark: #779556; }
+        body.light { --bg: #f8f9fa; --panel: #fff; --text: #111; --muted: #6b7280; }
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg); color: var(--text); display: flex; height: 100dvh; overflow: hidden; }
+        
+        .sidebar { width: 70px; background: var(--panel); border-right: 1px solid rgba(128,128,128,0.2); display: flex; flex-direction: column; align-items: center; padding: 20px 0; z-index: 10; }
+        .nav-btn { width: 50px; height: 50px; border-radius: 12px; background: transparent; border: none; color: var(--muted); cursor: pointer; margin-bottom: 10px; font-size: 1.5rem; display: flex; justify-content: center; align-items: center; }
+        .nav-btn.active, .nav-btn:hover { background: rgba(128,128,128,0.1); color: var(--text); }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; transition: background-color 0.3s, color 0.3s; }
-        html, body { height: 100%; height: 100dvh; overflow: hidden; }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg-base); color: var(--text-main); display: flex; }
+        .main { flex: 1; display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+        .view { display: none; width: 100%; height: 100%; overflow-y: auto; }
+        .view.active { display: flex; flex-direction: column; }
 
-        /* SIDEBAR */
-        .sidebar { width: 70px; background: var(--bg-panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; padding: 20px 0; z-index: 100; flex-shrink: 0; }
-        .logo-icon { font-size: 2rem; color: var(--accent); margin-bottom: 30px; }
-        .nav-btn { width: 50px; height: 50px; border-radius: 12px; background: transparent; border: none; color: var(--text-muted); display: flex; justify-content: center; align-items: center; margin-bottom: 10px; cursor: pointer; transition: 0.2s; }
-        .nav-btn:hover, .nav-btn.active { background: var(--bg-hover); color: var(--text-main); }
-        .nav-btn svg { width: 24px; height: 24px; fill: currentColor; }
-        .sidebar-bottom { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 15px; width: 100%; }
-        .avatar-small { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-blue), var(--accent)); display: flex; justify-content: center; align-items: center; font-weight: bold; color: #fff; cursor: pointer; }
+        /* Dashboard */
+        #v-home { padding: 40px; align-items: center; }
+        .dash { display: grid; grid-template-columns: 350px 1fr; gap: 30px; width: 100%; max-width: 1100px; }
+        .card { background: var(--panel); border-radius: 16px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); border: 1px solid rgba(128,128,128,0.1); }
+        .avatar { width: 80px; height: 80px; border-radius: 12px; background: linear-gradient(135deg, var(--blue), var(--accent)); display: flex; justify-content: center; align-items: center; font-size: 2rem; font-weight: bold; color: #fff; }
+        .stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; background: var(--bg); padding: 15px; border-radius: 12px; text-align: center; margin-top: 20px; }
+        .stats h4 { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; margin-bottom: 5px; }
+        .stats div { font-size: 1.2rem; font-weight: bold; }
+        .play-btn { background: var(--panel); border: 1px solid rgba(128,128,128,0.2); border-radius: 16px; padding: 30px; text-align: center; cursor: pointer; transition: 0.2s; }
+        .play-btn:hover { border-color: var(--accent); transform: translateY(-3px); }
+        .play-btn h2 { font-size: 1.2rem; margin-bottom: 10px; }
 
-        /* LAYOUT */
-        .main-wrapper { flex: 1; display: flex; flex-direction: column; height: 100%; overflow: hidden; }
-        .view-section { display: none; width: 100%; height: 100%; overflow-y: auto; }
-        .view-section.active { display: flex; flex-direction: column; }
-
-        /* DASHBOARD */
-        #home-view { padding: 40px; align-items: center; }
-        .dash-container { width: 100%; max-width: 1100px; display: grid; grid-template-columns: 350px 1fr; gap: 30px; }
-        .profile-card { background: var(--bg-panel); border-radius: 16px; padding: 25px; box-shadow: var(--shadow); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 20px; }
-        .profile-header { display: flex; align-items: center; gap: 15px; }
-        .avatar-large { width: 80px; height: 80px; border-radius: 12px; background: linear-gradient(135deg, var(--accent-blue), var(--accent)); display: flex; justify-content: center; align-items: center; font-size: 2rem; font-weight: bold; color: #fff; }
-        .profile-info h2 { font-size: 1.5rem; margin-bottom: 5px; }
-        .profile-info p { color: var(--text-muted); font-size: 0.9rem; display: flex; align-items: center; gap: 5px; }
-        .stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; background: var(--bg-base); padding: 15px; border-radius: 12px; text-align: center; }
-        .stat-box h4 { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 5px; text-transform: uppercase; }
-        .stat-box div { font-size: 1.2rem; font-weight: bold; }
-        .win-rate-bar { width: 100%; height: 10px; background: var(--danger); border-radius: 5px; overflow: hidden; display: flex; margin: 10px 0; }
-        .win-rate-fill { height: 100%; background: var(--accent); transition: width 0.5s; }
-        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-content: start; }
-        .action-card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 16px; padding: 30px; text-align: center; cursor: pointer; transition: 0.2s; box-shadow: var(--shadow); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; }
-        .action-card:hover { transform: translateY(-5px); border-color: var(--accent); }
-        .action-card h2 { font-size: 1.3rem; }
-        .action-card p { color: var(--text-muted); font-size: 0.9rem; }
-        .icon-large { font-size: 3rem; }
-
-        /* GAME VIEW */
-        #play-view { background: var(--bg-base); flex-direction: row; justify-content: center; align-items: stretch; }
-        .game-area { display: flex; flex-direction: column; flex: 1; max-width: 800px; padding: 20px; justify-content: center; }
-        .player-strip { display: flex; justify-content: space-between; align-items: center; background: var(--bg-panel); padding: 10px 15px; border-radius: 8px; margin: 5px 0; border: 1px solid var(--border); }
-        .player-details { display: flex; align-items: center; gap: 10px; }
-        .player-avatar { width: 35px; height: 35px; border-radius: 6px; background: var(--bg-hover); display: flex; justify-content: center; align-items: center; font-weight: bold; }
-        .clock { font-family: monospace; font-size: 1.5rem; font-weight: bold; background: var(--bg-base); padding: 5px 15px; border-radius: 6px; }
+        /* Game */
+        #v-game { flex-direction: row; justify-content: center; }
+        .game-area { display: flex; flex-direction: column; flex: 1; max-width: 800px; padding: 20px; }
+        .player { display: flex; justify-content: space-between; align-items: center; background: var(--panel); padding: 10px 15px; border-radius: 8px; margin: 5px 0; border: 1px solid rgba(128,128,128,0.1); }
+        .clock { font-family: monospace; font-size: 1.5rem; font-weight: bold; background: var(--bg); padding: 5px 15px; border-radius: 6px; }
         .clock.active { background: var(--accent); color: #000; }
-        .board-container { width: 100%; aspect-ratio: 1/1; background: var(--bg-panel); padding: 5px; border-radius: 8px; box-shadow: var(--shadow); }
+        .board-wrap { width: 100%; aspect-ratio: 1/1; background: var(--panel); padding: 5px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
         #board { display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr); width: 100%; height: 100%; }
-        .square { display: flex; justify-content: center; align-items: center; position: relative; cursor: pointer; font-size: 9vw; }
-        @media (min-width: 600px) { .square { font-size: 55px; } }
-        .square.light { background-color: var(--board-light); color: #333; }
-        .square.dark { background-color: var(--board-dark); color: #333; }
-        .piece { filter: drop-shadow(0px 3px 2px rgba(0,0,0,0.4)); z-index: 2; transition: transform 0.1s; }
-        .piece:hover { transform: scale(1.05); }
-        .piece-w { color: #ffffff; -webkit-text-stroke: 1px #333; }
-        .piece-b { color: #111111; -webkit-text-stroke: 1px #999; }
-        .square::before { content: attr(data-file); position: absolute; bottom: 2px; right: 4px; font-size: 0.55rem; font-weight: bold; opacity: 0.4; }
-        .square::after { content: attr(data-rank); position: absolute; top: 2px; left: 4px; font-size: 0.55rem; font-weight: bold; opacity: 0.4; }
-        .highlight-dot::before { content: ''; position: absolute; width: 30%; height: 30%; background: rgba(0,0,0,0.2); border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1; }
-        .highlight-capture::after { content: ''; position: absolute; width: 90%; height: 90%; border: 4px solid rgba(0,0,0,0.2); border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1; }
-        .in-check { background-color: rgba(239, 68, 68, 0.8) !important; }
-        .last-move { background-color: rgba(255, 255, 0, 0.4) !important; }
-        .game-sidebar { width: 300px; background: var(--bg-panel); border-left: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
-        .move-history-title { padding: 15px; border-bottom: 1px solid var(--border); font-weight: bold; display: flex; justify-content: space-between; }
-        .btn-close-history { background: none; border: none; color: var(--text-main); cursor: pointer; display: none; }
-        .move-list { list-style: none; flex: 1; overflow-y: auto; }
-        .move-list li { padding: 8px 15px; display: flex; font-family: monospace; font-size: 1rem; border-bottom: 1px solid rgba(255,255,255,0.02); }
-        .move-list li:nth-child(even) { background: rgba(255,255,255,0.02); }
-        .move-list .num { color: var(--text-muted); width: 40px; }
-        .move-list .move { width: 50%; }
-        .game-actions { padding: 15px; border-top: 1px solid var(--border); display: flex; gap: 10px; }
-        .btn-game { flex: 1; padding: 12px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; background: var(--bg-hover); color: var(--text-main); transition: 0.2s; }
-        .btn-game:hover { background: #374151; }
-        .btn-game.danger { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
-        .btn-game.danger:hover { background: rgba(239, 68, 68, 0.4); }
+        .sq { display: flex; justify-content: center; align-items: center; position: relative; cursor: pointer; font-size: 9vw; }
+        @media (min-width: 600px) { .sq { font-size: 50px; } }
+        .sq.light { background: var(--light); color: #333; } .sq.dark { background: var(--dark); color: #333; }
+        .p { filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.5)); z-index: 2; }
+        .p-w { color: #fff; -webkit-text-stroke: 1px #333; } .p-b { color: #111; -webkit-text-stroke: 1px #999; }
+        .hl::after { content: ''; position: absolute; width: 30%; height: 30%; background: rgba(0,0,0,0.2); border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        .check { background: rgba(239, 68, 68, 0.8) !important; }
+        
+        /* Sidebar History */
+        .history { width: 280px; background: var(--panel); border-left: 1px solid rgba(128,128,128,0.1); display: flex; flex-direction: column; flex-shrink: 0; }
+        .history ul { list-style: none; flex: 1; overflow-y: auto; font-family: monospace; padding: 15px; }
+        .history li { padding: 5px 0; border-bottom: 1px solid rgba(128,128,128,0.1); display: flex; gap: 10px; }
+        .actions { padding: 15px; display: flex; gap: 10px; }
+        .btn { flex: 1; padding: 12px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; background: rgba(128,128,128,0.1); color: var(--text); }
+        .btn.red { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
 
-        /* MODAIS E TOASTS */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center; padding: 15px; }
-        .modal-box { background: var(--bg-panel); padding: 30px; border-radius: 16px; border: 1px solid var(--border); width: 100%; max-width: 400px; box-shadow: var(--shadow); }
-        .modal-box h2 { color: var(--text-main); margin-bottom: 20px; font-size: 1.5rem; text-align: center; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 8px; font-size: 0.9rem; color: var(--text-muted); }
-        .form-group input, .form-group select { width: 100%; padding: 12px; background: var(--bg-base); border: 1px solid var(--border); color: var(--text-main); border-radius: 8px; outline: none; font-size: 1rem; }
-        .form-group input:focus { border-color: var(--accent-blue); }
-        .btn-primary { width: 100%; padding: 15px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: 0.2s; margin-top: 10px; }
-        .btn-primary:hover { filter: brightness(1.1); }
-        .btn-secondary { width: 100%; padding: 15px; background: transparent; border: 1px solid var(--border); color: var(--text-main); border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 10px; }
-        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--accent); color: #fff; padding: 12px 25px; border-radius: 8px; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.5); opacity: 0; transition: 0.3s; z-index: 2000; pointer-events: none; }
-        #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        /* Modals */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; justify-content: center; align-items: center; padding: 20px; }
+        .m-box { background: var(--panel); padding: 30px; border-radius: 16px; width: 100%; max-width: 400px; }
+        .m-box h2 { margin-bottom: 15px; text-align: center; }
+        .m-box input, .m-box select { width: 100%; padding: 12px; background: var(--bg); border: 1px solid rgba(128,128,128,0.2); color: var(--text); border-radius: 8px; margin-bottom: 10px; outline: none; }
+        .m-box button { width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 5px; }
+        .b-green { background: var(--accent); color: #fff; } .b-grey { background: transparent; border: 1px solid rgba(128,128,128,0.3) !important; color: var(--text); }
+        #toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: var(--accent); color: #fff; padding: 12px 25px; border-radius: 30px; font-weight: bold; transition: 0.3s; z-index: 200; }
+        #toast.show { bottom: 30px; }
 
-        @media (max-width: 900px) {
-            .dash-container { grid-template-columns: 1fr; padding-bottom: 80px; }
-            #play-view { flex-direction: column; padding-bottom: 60px; }
-            .game-sidebar { position: fixed; bottom: 0; left: 0; width: 100%; height: 250px; transform: translateY(100%); transition: transform 0.3s; z-index: 500; border-left: none; border-top: 1px solid var(--border); }
-            .game-sidebar.open { transform: translateY(0); }
-            .game-area { padding: 10px; }
-            .sidebar { width: 100%; height: 60px; position: fixed; bottom: 0; left: 0; flex-direction: row; justify-content: space-around; padding: 0; border-right: none; border-top: 1px solid var(--border); z-index: 600; }
-            .logo-icon, .sidebar-bottom { display: none; }
-            .nav-btn { margin-bottom: 0; width: 60px; height: 60px; border-radius: 0; }
-            .main-wrapper { height: calc(100dvh - 60px); padding-bottom: 0; }
-            #home-view { padding: 20px; }
-            .btn-close-history { display: block; }
+        @media (max-width: 850px) {
+            .dash { grid-template-columns: 1fr; padding-bottom: 80px; }
+            #v-game { flex-direction: column; }
+            .history { position: fixed; bottom: 0; left: 0; width: 100%; height: 250px; transform: translateY(100%); transition: 0.3s; z-index: 50; }
+            .history.open { transform: translateY(0); }
+            .sidebar { position: fixed; bottom: 0; width: 100%; height: 60px; flex-direction: row; justify-content: space-around; padding: 0; z-index: 60; border-right: none; border-top: 1px solid rgba(128,128,128,0.1); }
+            .main { height: calc(100dvh - 60px); }
+            #v-home { padding: 20px; }
         }
     </style>
 </head>
 <body>
 
     <aside class="sidebar">
-        <div class="logo-icon">♞</div>
-        <button class="nav-btn active" onclick="switchView('home-view', this)">
-            <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-        </button>
-        <button class="nav-btn" onclick="switchView('play-view', this)">
-            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-        </button>
-        <button class="nav-btn" onclick="switchView('settings-view', this)">
-            <svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
-        </button>
-        <div class="sidebar-bottom">
-            <button class="nav-btn" onclick="openAdminLogin()">
-                <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zm0 9l2.5-1.25L12 8.5l-2.5 1.25L12 11zm0 2.5l-5-2.5-5 2.5L12 22l10-8.5-5-2.5-5 2.5z"/></svg>
-            </button>
-            <div class="avatar-small" onclick="openLogin()" id="sidebar-avatar">G</div>
-        </div>
+        <button class="nav-btn active" onclick="go('home', this)">🏠</button>
+        <button class="nav-btn" onclick="go('game', this)">⚔️</button>
+        <button class="nav-btn" onclick="go('set', this)">⚙️</button>
+        <button class="nav-btn" onclick="openModal('m-admin')" style="margin-top:auto; font-size:1.2rem;">👑</button>
     </aside>
 
-    <main class="main-wrapper">
-        <section id="home-view" class="view-section active">
-            <div class="dash-container">
-                <div class="profile-card">
-                    <div class="profile-header">
-                        <div class="avatar-large" id="dash-avatar">G</div>
-                        <div class="profile-info">
-                            <h2 id="dash-name">Convidado</h2>
-                            <p><span style="font-size: 1.2rem;">🇵🇹</span> Portugal</p>
-                        </div>
+    <main class="main">
+        <!-- HOME -->
+        <div id="v-home" class="view active">
+            <div class="dash">
+                <div class="card">
+                    <div style="display:flex; gap:15px; align-items:center;">
+                        <div class="avatar" id="u-av">G</div>
+                        <div><h2 id="u-name">Convidado</h2><p style="color:var(--muted); font-size:0.9rem;">🇵🇹 Portugal</p></div>
                     </div>
-                    <div class="stats-row">
-                        <div class="stat-box"><h4>Rating</h4><div style="color: var(--accent-blue);" id="dash-rating">1200</div></div>
-                        <div class="stat-box"><h4>Partidas</h4><div id="dash-total">0</div></div>
-                        <div class="stat-box"><h4>Win Rate</h4><div style="color: var(--accent);" id="dash-winrate">0%</div></div>
+                    <div class="stats">
+                        <div><h4>Rating</h4><div style="color:var(--blue)" id="u-pts">1200</div></div>
+                        <div><h4>Jogos</h4><div id="u-tot">0</div></div>
+                        <div><h4>Win</h4><div style="color:var(--accent)" id="u-win">0%</div></div>
                     </div>
-                    <div>
-                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 5px; color: var(--text-muted);">
-                            <span id="dash-wins-text">0 Vitórias</span>
-                            <span id="dash-losses-text">0 Derrotas</span>
-                        </div>
-                        <div class="win-rate-bar"><div class="win-rate-fill" id="dash-winrate-bar" style="width: 0%;"></div></div>
-                    </div>
+                    <button class="btn" style="margin-top:15px; border:1px solid rgba(128,128,128,0.2);" onclick="openModal('m-login')" id="btn-login">Entrar / Registar</button>
                 </div>
-                <div class="action-grid">
-                    <div class="action-card" onclick="startGame('pvc')">
-                        <div class="icon-large">🤖</div>
-                        <h2>Jogar vs Computador</h2>
-                        <p>Modo Casual. Treina sem afetar o rank.</p>
-                    </div>
-                    <div class="action-card" onclick="startGame('online')">
-                        <div class="icon-large">🌐</div>
-                        <h2>Jogar Online (Ranked)</h2>
-                        <p>Encontra um adversário e ganha ELO.</p>
-                    </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; align-content:start;">
+                    <div class="play-btn" onclick="start('pvc')"><h2>🤖 vs IA</h2><p style="color:var(--muted); font-size:0.8rem;">Modo Casual</p></div>
+                    <div class="play-btn" onclick="start('online')"><h2>🌐 Online</h2><p style="color:var(--muted); font-size:0.8rem;">Ranked</p></div>
                 </div>
             </div>
-        </section>
+        </div>
 
-        <section id="play-view" class="view-section">
+        <!-- GAME -->
+        <div id="v-game" class="view">
             <div class="game-area">
-                <div class="player-strip">
-                    <div class="player-details">
-                        <div class="player-avatar">🤖</div>
-                        <div><div style="font-weight: bold; font-size: 0.9rem;" id="opp-name">Oponente</div><div style="font-size: 0.75rem; color: var(--text-muted);" id="opp-rating">---</div></div>
-                    </div>
-                    <div class="clock" id="clock-top">10:00</div>
+                <div class="player">
+                    <div style="display:flex; align-items:center; gap:10px;"><div style="font-size:1.5rem;">🤖</div><div><b id="opp-name">Oponente</b><div style="font-size:0.7rem; color:var(--muted)" id="opp-elo">---</div></div></div>
+                    <div class="clock" id="c-top">10:00</div>
                 </div>
-                <div class="board-container"><div id="board"></div></div>
-                <div class="player-strip">
-                    <div class="player-details">
-                        <div class="player-avatar" id="game-avatar">G</div>
-                        <div><div style="font-weight: bold; font-size: 0.9rem;" id="game-name">Tu</div><div style="font-size: 0.75rem; color: var(--text-muted);" id="game-rating">1200</div></div>
-                    </div>
-                    <div class="clock active" id="clock-bottom">10:00</div>
+                <div class="board-wrap"><div id="board"></div></div>
+                <div class="player">
+                    <div style="display:flex; align-items:center; gap:10px;"><div style="font-size:1.5rem;" id="my-av">G</div><div><b id="my-name">Tu</b><div style="font-size:0.7rem; color:var(--muted)" id="my-elo">1200</div></div></div>
+                    <div class="clock active" id="c-bot">10:00</div>
                 </div>
             </div>
-            <div class="game-sidebar" id="game-sidebar">
-                <div class="move-history-title"><span>Movimentos</span><button class="btn-close-history" onclick="toggleHistoryMobile()">✖</button></div>
-                <ul class="move-list" id="move-list"></ul>
-                <div class="game-actions">
-                    <button class="btn-game" onclick="askNewGame()">Novo Jogo</button>
-                    <button class="btn-game danger" onclick="askResign()">Desistir</button>
+            <div class="history" id="hist">
+                <div style="padding:15px; font-weight:bold; display:flex; justify-content:space-between; border-bottom:1px solid rgba(128,128,128,0.1);">
+                    <span>Movimentos</span><button style="background:none; border:none; color:var(--text);" onclick="document.getElementById('hist').classList.remove('open')">✖</button>
+                </div>
+                <ul id="moves"></ul>
+                <div class="actions">
+                    <button class="btn" onclick="askNew()">Novo Jogo</button>
+                    <button class="btn red" onclick="askResign()">Desistir</button>
                 </div>
             </div>
-        </section>
+        </div>
 
-        <section id="settings-view" class="view-section" style="padding: 40px; align-items: center;">
-            <div class="profile-card" style="width: 100%; max-width: 500px;">
-                <h2 style="margin-bottom: 20px;">Definições</h2>
-                <div class="form-group"><label>Interface</label><select id="set-theme" onchange="applySettings()"><option value="dark">Escuro (Cyberpunk)</option><option value="light">Claro (Clássico)</option></select></div>
-                <div class="form-group"><label>Estilo das Peças</label><select id="set-pieces" onchange="applySettings()"><option value="classic">Clássico (Unicode)</option><option value="modern">Neon Sólido</option><option value="outline">Contorno</option><option value="letters">Letras</option></select></div>
-                <div class="form-group"><label>Cor do Tabuleiro</label><select id="set-board" onchange="applySettings()"><option value="classic">Madeira (Clássico)</option><option value="dark">Neon Escuro</option><option value="cyberpunk">Azul Cyberpunk</option><option value="emerald">Esmeralda</option><option value="purple">Roxo Místico</option></select></div>
+        <!-- SETTINGS -->
+        <div id="v-set" class="view" style="padding:40px; align-items:center;">
+            <div class="card" style="width:100%; max-width:500px;">
+                <h2>Definições</h2>
+                <select id="set-ui" onchange="theme()" style="margin-top:15px;"><option value="dark">Site Escuro</option><option value="light">Site Claro</option></select>
+                <select id="set-pc" onchange="theme()"><option value="classic">Peças Clássicas</option><option value="modern">Peças Sólidas</option><option value="letters">Letras</option></select>
+                <select id="set-bd" onchange="theme()"><option value="classic">Tabuleiro Madeira</option><option value="dark">Neon Escuro</option><option value="blue">Cyberpunk</option><option value="green">Esmeralda</option></select>
             </div>
-        </section>
+        </div>
     </main>
 
-    <div class="modal-overlay" id="login-modal"><div class="modal-box"><h2>Entrar / Registar</h2><div class="form-group"><label>E-mail</label><input type="email" id="login-email" placeholder="exemplo@email.com"></div><div class="form-group"><label>Nome de Jogador</label><input type="text" id="login-name" placeholder="O teu nome" maxlength="15"></div><button class="btn-primary" onclick="doLogin()">Entrar</button><button class="btn-secondary" onclick="closeModal('login-modal')">Cancelar</button></div></div>
-    <div class="modal-overlay" id="admin-login-modal"><div class="modal-box"><h2>👑 Área Restrita</h2><div class="form-group"><label>Password</label><input type="password" id="admin-pass" placeholder="admin"></div><button class="btn-primary" style="background: var(--accent-blue);" onclick="checkAdmin()">Entrar</button><button class="btn-secondary" onclick="closeModal('admin-login-modal')">Fechar</button></div></div>
-    <div class="modal-overlay" id="admin-dashboard"><div class="modal-box"><h2>👑 Gestão</h2><div class="form-group"><label>Procurar Jogador (Nome)</label><div style="display: flex; gap: 10px;"><input type="text" id="admin-search" placeholder="Nome exato"><button class="btn-primary" style="width: auto; margin: 0; padding: 0 15px;" onclick="searchPlayer()">Procurar</button></div></div><div id="admin-result" style="display: none; background: var(--bg-base); padding: 15px; border-radius: 8px; margin-bottom: 15px;"><p style="color: var(--text-muted); font-size: 0.9rem;">Jogador: <strong id="admin-target-name" style="color: var(--accent);"></strong></p><p style="color: var(--text-muted); font-size: 0.9rem;">Pontos: <strong id="admin-target-pts"></strong></p></div><div class="form-group"><label>Pontos</label><input type="number" id="admin-amount" placeholder="Ex: 500"></div><div style="display: flex; gap: 10px;"><button class="btn-primary" style="background: var(--danger);" onclick="modifyPoints('remove')">Remover</button><button class="btn-primary" onclick="modifyPoints('add')">Adicionar</button></div><button class="btn-secondary" onclick="closeModal('admin-dashboard')">Fechar</button></div></div>
+    <!-- MODALS -->
+    <div class="modal" id="m-login"><div class="m-box"><h2>Entrar</h2><input type="email" id="i-mail" placeholder="Email"><input type="text" id="i-name" placeholder="Nome" maxlength="12"><button class="b-green" onclick="login()">Entrar</button><button class="b-grey" onclick="closeModal('m-login')">Cancelar</button></div></div>
+    <div class="modal" id="m-admin"><div class="m-box"><h2>👑 Admin</h2><input type="password" id="i-pass" placeholder="Password"><button class="b-green" onclick="checkAdmin()">Entrar</button><button class="b-grey" onclick="closeModal('m-admin')">Fechar</button></div></div>
+    <div class="modal" id="m-admin-panel"><div class="m-box"><h2>Gerir Pontos</h2><input type="text" id="a-search" placeholder="Nome do Jogador"><button class="b-green" onclick="findPlayer()">Procurar</button><div id="a-res" style="display:none; margin:10px 0; padding:10px; background:rgba(128,128,128,0.1); border-radius:8px;"><span id="a-name"></span>: <b id="a-pts"></b></div><input type="number" id="a-amt" placeholder="Pontos a mudar"><div style="display:flex; gap:10px;"><button class="b-green" onclick="mod('add')">Adicionar</button><button class="b-grey" style="color:var(--danger); border-color:var(--danger) !important;" onclick="mod('sub')">Remover</button></div><button class="b-grey" onclick="closeModal('m-admin-panel')">Sair</button></div></div>
+    <div class="modal" id="m-confirm"><div class="m-box"><h2 id="c-title">Título</h2><p id="c-msg" style="margin-bottom:20px; color:var(--muted)">Msg</p><div style="display:flex; gap:10px;"><button class="b-grey" onclick="closeC(false)">Não</button><button class="b-green" id="c-btn" onclick="closeC(true)">Sim</button></div></div></div>
+    <div class="modal" id="m-promo"><div class="m-box" style="text-align:center; font-size:3rem; display:flex; justify-content:center; gap:15px;"><div onclick="promo('q')">♕</div><div onclick="promo('r')">♖</div><div onclick="promo('b')">♗</div><div onclick="promo('n')">♘</div></div></div>
     
-    <div class="modal-overlay" id="confirm-modal"><div class="modal-box"><h2 id="confirm-title">Título</h2><p id="confirm-msg" style="color: var(--text-muted); margin-bottom: 20px;">Mensagem</p><div style="display: flex; gap: 10px;"><button class="btn-secondary" onclick="closeConfirm(false)">Cancelar</button><button class="btn-primary" id="confirm-btn-yes" onclick="closeConfirm(true)">Sim</button></div></div></div>
-    <div class="modal-overlay" id="promo-modal"><div class="modal-box" style="text-align: center;"><h2>Promover Peão</h2><div style="display: flex; justify-content: center; gap: 20px; font-size: 3rem; cursor: pointer;"><div onclick="selectPromotion('q')" class="piece-w">♕</div><div onclick="selectPromotion('r')" class="piece-w">♖</div><div onclick="selectPromotion('b')" class="piece-w">♗</div><div onclick="selectPromotion('n')" class="piece-w">♘</div></div></div></div>
-    <div id="toast">Notificação</div>
+    <div id="toast">Msg</div>
 
     <script>
-        // --- BASE DE DADOS ---
-        function getDB() { return JSON.parse(localStorage.getItem('neon_db')) || {}; }
-        function saveDB(db) { localStorage.setItem('neon_db', JSON.stringify(db)); }
-        let currentUserEmail = localStorage.getItem('current_email') || null;
-        const ADMIN_PASSWORD = "admin";
-
-        function showToast(msg, color = 'var(--accent)') {
-            const toast = document.getElementById('toast');
-            toast.innerText = msg; toast.style.background = color;
-            toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 3000);
+        // --- DB & UI ---
+        const db = () => JSON.parse(localStorage.getItem('chess_db')) || {};
+        const save = (d) => localStorage.setItem('chess_db', JSON.stringify(d));
+        let user = localStorage.getItem('chess_user') || null;
+        
+        function toast(m) { const t=document.getElementById('toast'); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
+        function openModal(id) { document.getElementById(id).style.display='flex'; }
+        function closeModal(id) { document.getElementById(id).style.display='none'; }
+        function go(id, btn) { document.querySelectorAll('.view').forEach(v=>v.classList.remove('active')); document.getElementById('v-'+id).classList.add('active'); document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); if(id==='game' && board.length===0) start('pvc'); }
+        
+        function updateUI() {
+            let name="Convidado", pts=1200, w=0, l=0;
+            if(user && db()[user]) { name=db()[user].name; pts=db()[user].pts; w=db()[user].w; l=db()[user].l; }
+            else { pts = parseInt(localStorage.getItem('guest_pts')||'1200'); }
+            document.getElementById('u-name').innerText=name; document.getElementById('u-av').innerText=name[0].toUpperCase();
+            document.getElementById('u-pts').innerText=pts;
+            document.getElementById('u-tot').innerText=w+l;
+            document.getElementById('u-win').innerText=(w+l>0?Math.round((w/(w+l))*100):0)+'%';
+            document.getElementById('my-name').innerText=name; document.getElementById('my-av').innerText=name[0].toUpperCase();
+            document.getElementById('my-elo').innerText=pts;
+            if(user) document.getElementById('btn-login').innerText="Terminar Sessão";
         }
 
-        function switchView(viewId, btnElement) {
-            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
-            document.getElementById(viewId).classList.add('active');
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            if(btnElement) btnElement.classList.add('active');
-            // Se mudar para o jogo sem ter clicado em jogar, inicia um jogo casual por defeito
-            if(viewId === 'play-view' && board.length === 0) startGame('pvc'); 
+        function login() {
+            const mail=document.getElementById('i-mail').value.trim().toLowerCase(), name=document.getElementById('i-name').value.trim();
+            if(!mail||!name) return toast("Preenche tudo");
+            const d=db(); if(!d[mail]) d[mail]={name:name,pts:1200,w:0,l:0}; else d[mail].name=name;
+            save(d); user=mail; localStorage.setItem('chess_user',user); closeModal('m-login'); updateUI(); toast("Bem-vindo!");
         }
 
-        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
-        // --- PERFIL ---
-        function updateProfileUI() {
-            const db = getDB();
-            let name = "Convidado", pts = 1200, wins = 0, losses = 0;
-            if (currentUserEmail && db[currentUserEmail]) {
-                name = db[currentUserEmail].name; pts = db[currentUserEmail].points;
-                wins = db[currentUserEmail].wins || 0; losses = db[currentUserEmail].losses || 0;
-            } else { pts = parseInt(localStorage.getItem('guest_points') || '1200'); }
-
-            const total = wins + losses, winrate = total > 0 ? Math.round((wins / total) * 100) : 0;
-            document.getElementById('dash-name').innerText = name;
-            document.getElementById('dash-avatar').innerText = name.charAt(0).toUpperCase();
-            document.getElementById('dash-rating').innerText = pts;
-            document.getElementById('dash-total').innerText = total;
-            document.getElementById('dash-winrate').innerText = winrate + '%';
-            document.getElementById('dash-wins-text').innerText = wins + ' Vitórias';
-            document.getElementById('dash-losses-text').innerText = losses + ' Derrotas';
-            document.getElementById('dash-winrate-bar').style.width = winrate + '%';
-            document.getElementById('sidebar-avatar').innerText = name.charAt(0).toUpperCase();
-            document.getElementById('game-name').innerText = name;
-            document.getElementById('game-avatar').innerText = name.charAt(0).toUpperCase();
-            document.getElementById('game-rating').innerText = pts;
+        // --- ADMIN ---
+        function checkAdmin(){ if(document.getElementById('i-pass').value==='admin'){ closeModal('m-admin'); openModal('m-admin-panel'); } else toast("Erro"); }
+        let targetMail=null;
+        function findPlayer(){
+            const s=document.getElementById('a-search').value.trim().toLowerCase(), d=db();
+            for(let m in d){ if(d[m].name.toLowerCase()===s){ targetMail=m; document.getElementById('a-name').innerText=d[m].name; document.getElementById('a-pts').innerText=d[m].pts; document.getElementById('a-res').style.display='block'; return; } }
+            toast("Não encontrado");
+        }
+        function mod(act){
+            if(!targetMail) return toast("Procura primeiro");
+            const amt=parseInt(document.getElementById('a-amt').value); if(!amt||amt<1) return toast("Qtd inválida");
+            const d=db(); d[targetMail].pts = act==='add' ? d[targetMail].pts+amt : Math.max(0,d[targetMail].pts-amt);
+            save(d); document.getElementById('a-pts').innerText=d[targetMail].pts; updateUI(); toast("Feito!");
         }
 
-        function openLogin() {
-            if (currentUserEmail) { if (confirm("Terminar sessão?")) { currentUserEmail = null; localStorage.removeItem('current_email'); updateProfileUI(); } }
-            else openModal('login-modal');
+        // --- GAME ENGINE ---
+        const bEl = document.getElementById('board');
+        let board=[], turn='w', sel=null, moves=[], hist=[], num=1, flipped=false, mode='pvc', over=false, ep=null, pp=null;
+        const initB = ['r','n','b','q','k','b','n','r','p','p','p','p','p','p','p','p',null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,'P','P','P','P','P','P','P','P','R','N','B','Q','K','B','N','R'];
+        
+        let wTime=600, bTime=600, timer=null;
+        let chan=null, myColor=null, online=false;
+
+        function start(m){
+            mode=m; go('game', document.querySelectorAll('.nav-btn')[1]); if(timer) clearInterval(timer);
+            if(m==='online'){
+                online=true; document.getElementById('opp-name').innerText="À espera...";
+                chan = new BroadcastChannel('neon_chess_bc'); chan.postMessage({t:'find'});
+                chan.onmessage = e => {
+                    if(e.data.t==='find' && !myColor){ myColor='w'; chan.postMessage({t:'found',c:'b'}); onlStart('Oponente'); }
+                    else if(e.data.t==='found'){ myColor=e.data.c; onlStart('Oponente'); }
+                    else if(e.data.t==='move' && online) { applyOnl(e.data.m); }
+                    else if(e.data.t==='resign') { over=true; clearInterval(timer); toast("Inimigo desistiu. Ganhaste!"); updStats('w'); }
+                };
+            } else {
+                online=false; document.getElementById('opp-name').innerText="Computador (IA)"; document.getElementById('opp-elo').innerText="1500";
+                flipped=false; reset();
+            }
+        }
+        function onlStart(name){ document.getElementById('opp-name').innerText=name; document.getElementById('opp-elo').innerText="Ranked"; if(myColor==='b') flipped=true; reset(); }
+        function applyOnl(m){ board[m.t]=m.p; board[m.f]=null; turn=turn==='w'?'b':'w'; draw(); check(); updateClocks(); }
+
+        function reset() {
+            board=[...initB]; turn='w'; sel=null; moves=[]; hist=[]; num=1; ep=null; over=false; wTime=600; bTime=600;
+            document.getElementById('moves').innerHTML=''; draw(); startTimer();
+        }
+        function startTimer() {
+            if(timer) clearInterval(timer); updateClocks();
+            timer=setInterval(()=>{
+                if(over) return;
+                if(turn==='w') wTime--; else bTime--;
+                if(wTime<=0||bTime<=0){ over=true; clearInterval(timer); toast("Tempo!"); updStats(wTime<=0?'l':'w'); }
+                updateClocks();
+            },1000);
+        }
+        function updateClocks() {
+            const f=t=>`${Math.floor(t/60)}:${(t%60).toString().padStart(2,'0')}`;
+            const ct=document.getElementById('c-top'), cb=document.getElementById('c-bot');
+            if(flipped){ ct.innerText=f(wTime); cb.innerText=f(bTime); ct.classList.toggle('active',turn==='w'); cb.classList.toggle('active',turn==='b'); }
+            else { ct.innerText=f(bTime); cb.innerText=f(wTime); ct.classList.toggle('active',turn==='b'); cb.classList.toggle('active',turn==='w'); }
         }
 
-        function doLogin() {
-            const email = document.getElementById('login-email').value.trim().toLowerCase();
-            const name = document.getElementById('login-name').value.trim();
-            if (!email || !name) return showToast("Preenche todos os campos", "var(--danger)");
-            const db = getDB();
-            if (!db[email]) db[email] = { name: name, points: 1200, wins: 0, losses: 0 };
-            else if (db[email].name !== name) { if(!confirm("Atualizar nome?")) return; db[email].name = name; }
-            saveDB(db); currentUserEmail = email; localStorage.setItem('current_email', email);
-            closeModal('login-modal'); updateProfileUI(); showToast("Login efetuado!");
+        function getMoves(p, pc, b, e) {
+            let m=[], r=Math.floor(p/8), c=p%8, w=pc===pc.toUpperCase();
+            const add=(r,c)=>{ if(r>=0&&r<8&&c>=0&&c<8){ let t=r*8+c, tp=b[t]; if(!tp||(w?tp===tp.toLowerCase():tp===tp.toUpperCase())) m.push({f:p,t:t,p:pc,c:tp}); } };
+            const l=pc.toLowerCase();
+            if(l==='p'){ let d=w?-1:1, s=w?6:1; if(r+d>=0&&r+d<8&&!b[(r+d)*8+c]){ m.push({f:p,t:(r+d)*8+c,p:pc}); if(r===s&&!b[(r+2*d)*8+c]) m.push({f:p,t:(r+2*d)*8+c,p:pc}); } [-1,1].forEach(dc=>{ if(c+dc>=0&&c+dc<8){ let t=(r+d)*8+(c+dc); if(r+d>=0&&r+d<8){ let tp=b[t]; if(tp&&(w?tp===tp.toLowerCase():tp===tp.toUpperCase())) m.push({f:p,t:t,p:pc,c:tp}); if(t===e) m.push({f:p,t:t,p:pc,c:w?'p':'P',ep:true}); } } }); }
+            else if(l==='n'){ [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]].forEach(([dr,dc])=>add(r+dr,c+dc)); }
+            else if(l==='b'||l==='r'||l==='q'){ let dirs=[]; if(l==='b'||l==='q') dirs.push([-1,-1],[-1,1],[1,-1],[1,1]); if(l==='r'||l==='q') dirs.push([-1,0],[1,0],[0,-1],[0,1]); dirs.forEach(([dr,dc])=>{ let rr=r+dr, cc=c+dc; while(rr>=0&&rr<8&&cc>=0&&cc<8){ let t=rr*8+cc, tp=b[t]; if(!tp) m.push({f:p,t:t,p:pc}); else { if(w?tp===tp.toLowerCase():tp===tp.toUpperCase()) m.push({f:p,t:t,p:pc,c:tp}); break; } rr+=dr; cc+=dc; } }); }
+            else if(l==='k'){ for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++) if(dr!==0||dc!==0) add(r+dr,c+dc); }
+            return m;
+        }
+        function getLegal(p, pc, b, e) { return getMoves(p,pc,b,e).filter(m=>{ let tb=[...b]; tb[m.t]=pc; tb[m.f]=null; if(m.ep) tb[pc===pc.toUpperCase()?m.t+8:m.t-8]=null; return !isCheck(pc===pc.toUpperCase()?'w':'b', tb); }); }
+        function isCheck(col, b) { let k=col==='w'?'K':'k', pos=b.indexOf(k); if(pos===-1) return false; let en=col==='w'?'b':'w'; for(let i=0;i<64;i++){ let p=b[i]; if(p&&(en==='w'?p===p.toUpperCase():p===p.toLowerCase())){ if(getMoves(i,p,b,null).some(m=>m.t===pos)) return true; } } return false; }
+        
+        function check() {
+            let has=false; for(let i=0;i<64;i++){ let p=board[i]; if(p&&(turn==='w'?p===p.toUpperCase():p===p.toLowerCase())){ if(getLegal(i,p,board,ep).length>0){has=true;break;} } }
+            if(!has){ over=true; clearInterval(timer); if(isCheck(turn,board)){ toast(`Xeque-Mate! Venceu: ${turn==='w'?'Pretas':'Brancas'}`); updStats(turn==='w'?'l':'w'); } else { toast("Empate"); } }
         }
 
-        // --- ADMIN
+        function draw() {
+            bEl.innerHTML=''; let chk=!over&&isCheck(turn,board), kp=board.indexOf(turn==='w'?'K':'k');
+            for(let i=0;i<64;i++){
+                let act=flipped?63-i:i, r=Math.floor(act/8), c=act%8, sq=document.createElement('div');
+                sq.className=`sq ${(r+c)%2===0?'light':'dark'}`;
+                if(sel===act) sq.style.backgroundColor='rgba(59,130,246,0.5)';
+                if(hist.length>0&&(hist[hist.length-1].f===act||hist[hist.length-1].t===act)) sq.style.backgroundColor='rgba(255,255,0,0.4)';
+                if(moves.find(m=>m.t===act)) sq.classList.add('hl');
+                if(chk&&act===kp) sq.classList.add('check');
+                let p=board[act];
+                if(p) sq.innerHTML=`<span class="p ${p===p.toUpperCase()?'p-w':'p-b'}">${getChar(p)}</span>`;
+                sq.onclick=()=>click(act); bEl.appendChild(sq);
+            }
+        }
+        function getChar(p) { let s=localStorage.getItem('c_pc')||'classic'; let m={classic:{K:'♔',Q:'♕',R:'♖',B:'♗',N:'♘',P:'♙',k:'♚',q:'♛',r:'♜',b:'♝',n:'♞',p:'♟'},modern:{K:'♚',Q:'♛',R:'♜',B:'♝',N:'♞',P:'♟',k:'♚',q:'♛',r:'♜',b:'♝',n:'♞',p:'♟'},letters:{K:'K',Q:'Q',R:'R',B:'B',N:'N',P:'P',k:'k',q:'q',r:'r',b:'b',n:'n',p:'p'}}; return m[s][p]||p; }
+        
+        function click(i) {
+            if(over||(online&&turn!==myColor)||(mode==='pvc'&&turn==='b')) return;
+            let cp=board[i];
+            if(sel!==null){ let m=moves.find(x=>x.t===i); if(m){ exec(m); return; } }
+            if(cp&&((turn==='w'&&cp===cp.toUpperCase())||(turn==='b'&&cp===cp.toLowerCase()))){ sel=i; moves=getLegal(i,cp,board,ep); } else { sel=null; moves=[]; }
+            draw();
+        }
+
+        function exec(m) {
+            if(m.p.toLowerCase()==='p'&&((m.p==='P'&&Math.floor(m.t/8)===0)||(m.p==='p'&&Math.floor(m.t/8)===7))){ pp=m; openModal('m-promo'); return; }
+            fin(m);
+        }
+        function promo(t){ closeModal('m-promo'); if(pp){ pp.p=pp.p==='P'?t.toUpperCase():t.toLowerCase(); fin(pp); pp=null; } }
+        
+        function fin(m) {
+            hist.push({f:m.f,t:m.t}); board[m.t]=m.p; board[m.f]=null;
+            if(m.ep) board[m.p==='P'?m.t+8:m.t-8]=null;
+            ep=null; if(m.p.toLowerCase()==='p'&&Math.abs(m.t-m.f)===16) ep=(m.t+m.f)/2;
+            
+            let note=`${m.p.toUpperCase()}${String.fromCharCode(97+(m.f%8))}${8-Math.floor(m.f/8)}-${String.fromCharCode(97+(m.t%8))}${8-Math.floor(m.t/8)}`;
+            if(turn==='b'){ document.getElementById('moves').innerHTML+=`<li><span style="color:var(--muted); width:30px">${num}.</span><span>${note}</span></li>`; num++; }
+            else { let l=document.getElementById('moves').lastElementChild; if(l) l.innerHTML+=`<span>${note}</
