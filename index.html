@@ -7,7 +7,6 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♞</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
-        /* TEMAS GLOBAIS E VARIÁVEIS */
         :root {
             --bg: #0a0a0c; --surface: rgba(18, 18, 22, 0.85); --text: #ffffff; --text-muted: #888888;
             --neon-cyan: #00f3ff; --neon-purple: #b800ff; --danger: #ff3333;
@@ -31,13 +30,20 @@
         #waiting-screen { display: none; }
         #menu-screen h1 { font-size: 3.5rem; margin-bottom: 1rem; background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 4px; font-weight: 800; text-shadow: 0 0 20px rgba(0, 243, 255, 0.2); text-align: center; }
         
-        /* RANK CARD */
-        .rank-card { background: var(--surface); backdrop-filter: blur(10px); border: 1px solid var(--border); padding: 15px 25px; border-radius: 16px; text-align: center; margin-bottom: 25px; width: 320px; box-shadow: var(--shadow); }
-        .rank-name { font-size: 1.6rem; font-weight: 800; color: var(--neon-cyan); text-shadow: 0 0 10px rgba(0, 243, 255, 0.3); margin-bottom: 5px; }
-        .rank-points { font-size: 0.9rem; color: var(--text-muted); font-weight: 600; }
-        .rank-bar-bg { width: 100%; height: 10px; background: rgba(128, 128, 128, 0.2); border-radius: 5px; margin-top: 12px; overflow: hidden; }
-        .rank-bar-fill { height: 100%; background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple)); width: 0%; transition: width 0.5s ease; }
+        /* PERFIL DO JOGADOR (NOME E RANK) */
+        .profile-card { background: var(--surface); backdrop-filter: blur(10px); border: 1px solid var(--border); padding: 20px; border-radius: 16px; text-align: center; margin-bottom: 25px; width: 320px; box-shadow: var(--shadow); display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        
+        .name-input { background: transparent; border: none; color: var(--text); font-size: 1.6rem; font-weight: 800; text-align: center; width: 100%; outline: none; border-bottom: 2px solid transparent; transition: border-color 0.3s; padding-bottom: 5px; }
+        .name-input:focus { border-bottom: 2px solid var(--neon-cyan); }
+        .name-input::placeholder { color: var(--text-muted); font-size: 1.2rem; font-weight: 400; }
 
+        .rank-info { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 100%; }
+        .rank-name { font-size: 1.2rem; font-weight: 800; color: var(--neon-purple); text-shadow: 0 0 10px rgba(184, 0, 255, 0.3); }
+        .rank-points { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; }
+        .rank-bar-bg { width: 100%; height: 8px; background: rgba(128, 128, 128, 0.2); border-radius: 4px; margin-top: 5px; overflow: hidden; }
+        .rank-bar-fill { height: 100%; background: linear-gradient(90deg, var(--neon-purple), var(--neon-cyan)); width: 0%; transition: width 0.5s ease; }
+
+        /* BOTÕES DO MENU */
         .menu-btn { background: var(--surface); backdrop-filter: blur(10px); border: 2px solid var(--neon-cyan); color: var(--text); padding: 1.2rem 2rem; font-size: 1.1rem; border-radius: 12px; margin: 0.5rem; width: 320px; cursor: pointer; transition: all 0.3s; font-weight: 600; display: flex; justify-content: center; align-items: center; gap: 12px; box-shadow: var(--shadow); }
         .menu-btn:hover { background: rgba(0, 243, 255, 0.1); box-shadow: 0 0 20px rgba(0, 243, 255, 0.4); transform: translateY(-3px); }
         .menu-btn.purple { border-color: var(--neon-purple); }
@@ -129,11 +135,17 @@
 
     <div id="menu-screen">
         <h1>NEON CHESS</h1>
-        <div class="rank-card">
-            <div class="rank-name" id="ui-rank">Bronze</div>
-            <div class="rank-points" id="ui-points">0 / 100.000 Pontos</div>
-            <div class="rank-bar-bg"><div class="rank-bar-fill" id="ui-rank-bar"></div></div>
+        
+        <!-- PERFIL DO JOGADOR -->
+        <div class="profile-card">
+            <input type="text" id="player-name" class="name-input" placeholder="Teu Nome..." maxlength="15" value="Jogador" onchange="savePlayerName()">
+            <div class="rank-info">
+                <div class="rank-name" id="ui-rank">Bronze</div>
+                <div class="rank-points" id="ui-points">0 / 100.000 Pontos</div>
+                <div class="rank-bar-bg"><div class="rank-bar-fill" id="ui-rank-bar"></div></div>
+            </div>
         </div>
+
         <button class="menu-btn" onclick="startGame('online')">🌐 Jogar Online (Ranked)</button>
         <button class="menu-btn purple" onclick="startGame('pvc')">🤖 Jogar vs IA (Casual)</button>
         <button class="menu-btn" style="border-color: #888; margin-top: 20px;" onclick="openSettings()">🎨 Temas e Definições</button>
@@ -187,7 +199,7 @@
     <div class="modal-overlay" id="admin-modal">
         <div class="modal-box">
             <h2 style="color: var(--neon-purple);">👑 Painel do Dono</h2>
-            <p>Adicionar pontos a um jogador</p>
+            <p>Adicionar pontos ao teu perfil</p>
             <div class="setting-group" style="text-align: left;">
                 <label>Nome do Jogador:</label>
                 <input type="text" id="admin-player-name" placeholder="Ex: Jogador1">
@@ -213,13 +225,13 @@
         </div>
     </div>
 
-    <!-- HISTÓRICO E BARRA LATERAL -->
+    <!-- HISTÓRICO -->
     <div id="history-panel">
         <h3 style="margin-bottom: 15px; color: var(--neon-cyan); font-weight: 600;">Movimentos</h3>
         <ul class="move-list" id="move-list"></ul>
     </div>
 
-    <!-- DEFINIÇÕES (TEMAS) -->
+    <!-- DEFINIÇÕES -->
     <div class="modal-overlay" id="settings-modal">
         <div class="modal-box settings-content">
             <h2>🎨 Temas e Definições</h2>
@@ -267,9 +279,9 @@
 
     <script>
         // --- CONFIGURAÇÃO DO DONO ---
-        const OWNER_PASSWORD = "admin"; // A PASSWORD É ESTA
+        const OWNER_PASSWORD = "admin"; 
 
-        // --- SISTEMA DE RANKS ---
+        // --- SISTEMA DE NOME E RANKS ---
         const RANKS = [
             { name: 'Bronze', min: 0, max: 1000 },
             { name: 'Prata', min: 1001, max: 5000 },
@@ -279,6 +291,18 @@
             { name: 'Mestre', min: 60001, max: 99999 },
             { name: 'Lenda (Leo)', min: 100000, max: 100000 }
         ];
+
+        function loadProfile() {
+            const savedName = localStorage.getItem('playerName') || 'Jogador';
+            document.getElementById('player-name').value = savedName;
+            updateRankUI();
+        }
+
+        function savePlayerName() {
+            const newName = document.getElementById('player-name').value.trim();
+            if (newName) localStorage.setItem('playerName', newName);
+            else document.getElementById('player-name').value = localStorage.getItem('playerName') || 'Jogador';
+        }
 
         function getPlayerPoints() { return parseInt(localStorage.getItem('playerPoints') || '0'); }
         function setPlayerPoints(pts) { 
@@ -305,6 +329,8 @@
         function requestAdmin() {
             const pwd = prompt("Insira a palavra-passe de Dono:");
             if (pwd === OWNER_PASSWORD) {
+                // Preenche automaticamente com o nome atual
+                document.getElementById('admin-player-name').value = localStorage.getItem('playerName') || 'Jogador';
                 document.getElementById('admin-modal').style.display = 'flex';
             } else if (pwd !== null) {
                 alert("Palavra-passe incorreta!");
@@ -314,7 +340,7 @@
         function closeAdmin() { document.getElementById('admin-modal').style.display = 'none'; }
 
         function addPointsAdmin() {
-            const playerName = document.getElementById('admin-player-name').value || "Local Player";
+            const playerName = document.getElementById('admin-player-name').value || "Jogador";
             const ptsToAdd = parseInt(document.getElementById('admin-points').value);
             
             if (isNaN(ptsToAdd) || ptsToAdd <= 0) {
@@ -328,7 +354,6 @@
             alert(`Sucesso! Foram adicionados ${ptsToAdd} pontos ao jogador ${playerName}.`);
             closeAdmin();
             document.getElementById('admin-points').value = '';
-            document.getElementById('admin-player-name').value = '';
         }
 
         // --- SISTEMA DE CONFIRMAÇÃO ---
@@ -426,6 +451,7 @@
         }
 
         function startGame(mode) {
+            savePlayerName(); // Guarda o nome antes de jogar
             gameMode = mode;
             document.getElementById('menu-screen').style.opacity = '0';
             setTimeout(() => {
@@ -808,7 +834,7 @@
         window.addEventListener('DOMContentLoaded', () => {
             initBoard();
             loadSettings();
-            updateRankUI();
+            loadProfile();
         });
     </script>
 </body>
