@@ -9,34 +9,17 @@
     <style>
         /* TEMAS GLOBAIS E VARIÁVEIS */
         :root {
-            /* Dark Mode (Padrão) */
-            --bg: #0a0a0c; 
-            --surface: rgba(18, 18, 22, 0.85); 
-            --text: #ffffff; 
-            --text-muted: #888888;
-            --neon-cyan: #00f3ff; 
-            --neon-purple: #b800ff; 
-            --danger: #ff3333;
-            --border: rgba(255,255,255,0.08); 
-            --glass-border: rgba(255,255,255,0.15);
+            --bg: #0a0a0c; --surface: rgba(18, 18, 22, 0.85); --text: #ffffff; --text-muted: #888888;
+            --neon-cyan: #00f3ff; --neon-purple: #b800ff; --danger: #ff3333;
+            --border: rgba(255,255,255,0.08); --glass-border: rgba(255,255,255,0.15);
             --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-            
-            /* Cores do Tabuleiro (Controladas via JS) */
-            --board-light: #2a2a30; 
-            --board-dark: #101014;
+            --board-light: #2a2a30; --board-dark: #101014;
         }
 
         body.light-mode {
-            /* Light Mode */
-            --bg: #f0f2f5; 
-            --surface: rgba(255, 255, 255, 0.85); 
-            --text: #1a1a1a; 
-            --text-muted: #666666;
-            --neon-cyan: #0088cc; 
-            --neon-purple: #8a2be2; 
-            --danger: #e60000;
-            --border: rgba(0,0,0,0.1); 
-            --glass-border: rgba(0,0,0,0.1);
+            --bg: #f0f2f5; --surface: rgba(255, 255, 255, 0.85); --text: #1a1a1a; --text-muted: #666666;
+            --neon-cyan: #0088cc; --neon-purple: #8a2be2; --danger: #e60000;
+            --border: rgba(0,0,0,0.1); --glass-border: rgba(0,0,0,0.1);
             --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
         }
 
@@ -87,8 +70,6 @@
         
         .piece-w { color: #ffffff; text-shadow: 0 0 3px #000, 0 0 6px #000, 0 0 2px #000; }
         .piece-b { color: #000000; text-shadow: 0 0 3px #fff, 0 0 6px #fff, 0 0 2px #fff; }
-        
-        /* Ajuste para Light Mode (Peças) */
         body.light-mode .piece-w { color: #fff; text-shadow: 0 0 3px #555, 0 0 5px #555; }
         body.light-mode .piece-b { color: #111; text-shadow: 0 0 3px #ccc, 0 0 5px #ccc; }
 
@@ -118,20 +99,22 @@
         .promo-piece { font-size: 50px; cursor: pointer; color: var(--text); padding: 10px; transition: transform 0.2s; }
         .promo-piece:hover { transform: scale(1.2); color: var(--neon-cyan); }
 
-        #history-panel { position: fixed; top: 0; right: -320px; width: 280px; height: 100%; background: var(--surface); backdrop-filter: blur(15px); border-left: 1px solid var(--border); z-index: 500; transition: right 0.3s ease; padding: 25px; overflow-y: auto; box-shadow: var(--shadow); }
+        #history-panel { position: fixed; top: 0; right: -320px; width: 280px; height: 100%; background: var(--surface); backdrop-filter: blur(15px); border-left: 1px solid var(--border); z-index: 500; transition: right 0.3s ease; padding: 25px; overflow-y: auto; box-shadow: var(--shadow); display: flex; flex-direction: column; }
         #history-panel.open { right: 0; }
-        .move-list { list-style: none; font-size: 1rem; color: var(--text-muted); }
+        .move-list { list-style: none; font-size: 1rem; color: var(--text-muted); flex: 1; overflow-y: auto; }
         .move-list li { padding: 8px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
         .move-list span { color: var(--text); font-weight: 600; }
 
-        /* DEFINIÇÕES */
+        /* BOTÃO ADMIN (Fundo da Barra Lateral) */
+        .admin-trigger { margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border); text-align: center; color: var(--text-muted); font-size: 0.8rem; cursor: pointer; transition: color 0.2s; }
+        .admin-trigger:hover { color: var(--danger); }
+
+        /* DEFINIÇÕES E ADMIN */
         .settings-content { max-height: 85vh; overflow-y: auto; text-align: left; }
         .settings-content h2 { color: var(--neon-cyan); text-align: center; margin-bottom: 15px; }
         .setting-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
         .setting-group label { color: var(--text); font-size: 0.95rem; font-weight: 600; }
-        .setting-group select, .setting-group input[type="checkbox"] { padding: 12px; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 8px; outline: none; font-family: 'Inter', sans-serif; font-size: 0.95rem; }
-        .setting-group input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; }
-        .toggle-row { display: flex; justify-content: space-between; align-items: center; background: rgba(128,128,128,0.1); padding: 12px; border-radius: 8px; }
+        .setting-group select, .setting-group input[type="text"], .setting-group input[type="number"] { padding: 12px; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 8px; outline: none; font-family: 'Inter', sans-serif; font-size: 0.95rem; }
 
         /* VITÓRIA */
         #fireworks-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; }
@@ -200,6 +183,26 @@
         </div>
     </div>
 
+    <!-- PAINEL DE ADMIN (DONO) -->
+    <div class="modal-overlay" id="admin-modal">
+        <div class="modal-box">
+            <h2 style="color: var(--neon-purple);">👑 Painel do Dono</h2>
+            <p>Adicionar pontos a um jogador</p>
+            <div class="setting-group" style="text-align: left;">
+                <label>Nome do Jogador:</label>
+                <input type="text" id="admin-player-name" placeholder="Ex: Jogador1">
+            </div>
+            <div class="setting-group" style="text-align: left;">
+                <label>Pontos a Adicionar:</label>
+                <input type="number" id="admin-points" placeholder="Ex: 5000" min="1" max="100000">
+            </div>
+            <div class="modal-btns">
+                <button class="modal-btn no" onclick="closeAdmin()">Fechar</button>
+                <button class="modal-btn yes" style="background: var(--neon-purple); color: #fff;" onclick="addPointsAdmin()">Adicionar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- PROMOÇÃO -->
     <div class="modal-overlay" id="promo-modal">
         <div class="promo-content">
@@ -210,17 +213,18 @@
         </div>
     </div>
 
-    <!-- HISTÓRICO -->
+    <!-- HISTÓRICO E BARRA LATERAL -->
     <div id="history-panel">
         <h3 style="margin-bottom: 15px; color: var(--neon-cyan); font-weight: 600;">Movimentos</h3>
         <ul class="move-list" id="move-list"></ul>
+        <!-- BOTÃO SECRETO DO DONO -->
+        <div class="admin-trigger" onclick="requestAdmin()">👑 Painel do Dono</div>
     </div>
 
     <!-- DEFINIÇÕES -->
     <div class="modal-overlay" id="settings-modal">
         <div class="modal-box settings-content">
             <h2>Personalização</h2>
-            
             <div class="setting-group">
                 <label>Interface do Site:</label>
                 <select id="ui-theme" onchange="applyTheme()">
@@ -228,7 +232,6 @@
                     <option value="light">Claro (Clássico)</option>
                 </select>
             </div>
-
             <div class="setting-group">
                 <label>Estilo das Peças:</label>
                 <select id="piece-style" onchange="applyTheme()">
@@ -238,7 +241,6 @@
                     <option value="letters">Letras (K, Q, R)</option>
                 </select>
             </div>
-
             <div class="setting-group">
                 <label>Cor do Tabuleiro:</label>
                 <select id="board-style" onchange="applyTheme()">
@@ -250,7 +252,6 @@
                     <option value="mono">Monocromático</option>
                 </select>
             </div>
-
             <button class="victory-btn" style="margin-top: 10px;" onclick="closeSettings()">Voltar ao Jogo</button>
         </div>
     </div>
@@ -267,6 +268,9 @@
     </div>
 
     <script>
+        // --- CONFIGURAÇÃO DO DONO ---
+        const OWNER_PASSWORD = "leo2024"; 
+
         // --- SISTEMA DE RANKS ---
         const RANKS = [
             { name: 'Bronze', min: 0, max: 1000 },
@@ -297,6 +301,36 @@
             let percent = (pts / 100000) * 100;
             if (rank.name === 'Lenda (Leo)') percent = 100;
             document.getElementById('ui-rank-bar').style.width = percent + '%';
+        }
+
+        // --- ADMIN LOGIC ---
+        function requestAdmin() {
+            const pwd = prompt("Insira a palavra-passe de Dono:");
+            if (pwd === OWNER_PASSWORD) {
+                document.getElementById('admin-modal').style.display = 'flex';
+            } else if (pwd !== null) {
+                alert("Palavra-passe incorreta!");
+            }
+        }
+
+        function closeAdmin() { document.getElementById('admin-modal').style.display = 'none'; }
+
+        function addPointsAdmin() {
+            const playerName = document.getElementById('admin-player-name').value || "Local Player";
+            const ptsToAdd = parseInt(document.getElementById('admin-points').value);
+            
+            if (isNaN(ptsToAdd) || ptsToAdd <= 0) {
+                alert("Insira um número válido de pontos.");
+                return;
+            }
+            
+            let current = getPlayerPoints();
+            setPlayerPoints(current + ptsToAdd);
+            
+            alert(`Sucesso! Foram adicionados ${ptsToAdd} pontos ao jogador ${playerName}.`);
+            closeAdmin();
+            document.getElementById('admin-points').value = '';
+            document.getElementById('admin-player-name').value = '';
         }
 
         // --- SISTEMA DE CONFIRMAÇÃO ---
@@ -348,14 +382,9 @@
             localStorage.setItem('pieceStyle', pStyle);
             localStorage.setItem('boardStyle', bStyle);
 
-            // Mudar o tema global do site (CSS)
-            if (uiStyle === 'light') {
-                document.body.classList.add('light-mode');
-            } else {
-                document.body.classList.remove('light-mode');
-            }
+            if (uiStyle === 'light') document.body.classList.add('light-mode');
+            else document.body.classList.remove('light-mode');
 
-            // Mudar as cores do tabuleiro (CSS variables)
             document.documentElement.style.setProperty('--board-light', THEMES.boards[bStyle].light);
             document.documentElement.style.setProperty('--board-dark', THEMES.boards[bStyle].dark);
             
