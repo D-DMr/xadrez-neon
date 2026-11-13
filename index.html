@@ -14,14 +14,11 @@
             --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
             --board-light: #2a2a30; --board-dark: #101014;
         }
-
         body.light-mode {
             --bg: #f0f2f5; --surface: rgba(255, 255, 255, 0.85); --text: #1a1a1a; --text-muted: #666666;
             --neon-cyan: #0088cc; --neon-purple: #8a2be2; --danger: #e60000;
-            --border: rgba(0,0,0,0.1); --glass-border: rgba(0,0,0,0.1);
-            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+            --border: rgba(0,0,0,0.1); --glass-border: rgba(0,0,0,0.1); --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
         }
-
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; transition: background-color 0.3s, color 0.3s; }
         body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow: hidden; }
 
@@ -30,15 +27,15 @@
         #waiting-screen { display: none; }
         #menu-screen h1 { font-size: 3.5rem; margin-bottom: 1rem; background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 4px; font-weight: 800; text-shadow: 0 0 20px rgba(0, 243, 255, 0.2); text-align: center; }
         
-        /* PERFIL DO JOGADOR (NOME E RANK) */
+        /* PERFIL */
         .profile-card { background: var(--surface); backdrop-filter: blur(10px); border: 1px solid var(--border); padding: 20px; border-radius: 16px; text-align: center; margin-bottom: 25px; width: 320px; box-shadow: var(--shadow); display: flex; flex-direction: column; align-items: center; gap: 10px; }
-        
-        .name-input { background: transparent; border: none; color: var(--text); font-size: 1.6rem; font-weight: 800; text-align: center; width: 100%; outline: none; border-bottom: 2px solid transparent; transition: border-color 0.3s; padding-bottom: 5px; }
-        .name-input:focus { border-bottom: 2px solid var(--neon-cyan); }
-        .name-input::placeholder { color: var(--text-muted); font-size: 1.2rem; font-weight: 400; }
+        .player-name-display { font-size: 1.8rem; font-weight: 800; color: var(--text); text-shadow: 0 0 10px var(--neon-cyan); }
+        .player-status { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 5px; }
+        .btn-login { background: transparent; border: 1px solid var(--neon-cyan); color: var(--neon-cyan); padding: 8px 20px; border-radius: 20px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
+        .btn-login:hover { background: rgba(0, 243, 255, 0.1); }
 
-        .rank-info { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 100%; }
-        .rank-name { font-size: 1.2rem; font-weight: 800; color: var(--neon-purple); text-shadow: 0 0 10px rgba(184, 0, 255, 0.3); }
+        .rank-info { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 100%; margin-top: 10px; }
+        .rank-name { font-size: 1.2rem; font-weight: 800; color: var(--neon-purple); }
         .rank-points { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; }
         .rank-bar-bg { width: 100%; height: 8px; background: rgba(128, 128, 128, 0.2); border-radius: 4px; margin-top: 5px; overflow: hidden; }
         .rank-bar-fill { height: 100%; background: linear-gradient(90deg, var(--neon-purple), var(--neon-cyan)); width: 0%; transition: width 0.5s ease; }
@@ -71,12 +68,10 @@
 
         #board-wrapper { width: 95vw; max-width: 500px; aspect-ratio: 1 / 1; position: relative; margin: auto 0; box-shadow: var(--shadow); border-radius: 12px; overflow: hidden; border: 1px solid var(--glass-border); }
         #board { display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr); width: 100%; height: 100%; }
-        
         .square { display: flex; justify-content: center; align-items: center; font-size: 11vw; cursor: pointer; position: relative; line-height: 1; }
         @media (min-width: 500px) { .square { font-size: 55px; } }
         .square.light { background-color: var(--board-light); }
         .square.dark { background-color: var(--board-dark); }
-        
         .piece-w { color: #ffffff; text-shadow: 0 0 3px #000, 0 0 6px #000, 0 0 2px #000; }
         .piece-b { color: #000000; text-shadow: 0 0 3px #fff, 0 0 6px #fff, 0 0 2px #fff; }
         body.light-mode .piece-w { color: #fff; text-shadow: 0 0 3px #555, 0 0 5px #555; }
@@ -119,8 +114,8 @@
         .settings-content h2 { color: var(--neon-cyan); text-align: center; margin-bottom: 15px; }
         .setting-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
         .setting-group label { color: var(--text); font-size: 0.95rem; font-weight: 600; }
-        .setting-group select, .setting-group input[type="text"], .setting-group input[type="number"] { padding: 12px; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 8px; outline: none; font-family: 'Inter', sans-serif; font-size: 0.95rem; }
-
+        .setting-group select, .setting-group input { padding: 12px; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 8px; outline: none; font-family: 'Inter', sans-serif; font-size: 0.95rem; width: 100%; }
+        
         /* VITÓRIA */
         #fireworks-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; }
         .victory-content { background: var(--surface); backdrop-filter: blur(15px); padding: 40px 20px; border-radius: 24px; border: 2px solid var(--neon-cyan); text-align: center; z-index: 1; width: 90%; max-width: 400px; box-shadow: var(--shadow); }
@@ -138,7 +133,10 @@
         
         <!-- PERFIL DO JOGADOR -->
         <div class="profile-card">
-            <input type="text" id="player-name" class="name-input" placeholder="Teu Nome..." maxlength="15" value="Jogador" onchange="savePlayerName()">
+            <div class="player-name-display" id="ui-player-name">Convidado</div>
+            <div class="player-status" id="ui-player-status">A jogar como convidado</div>
+            <button class="btn-login" onclick="openLogin()">Entrar / Registar</button>
+            
             <div class="rank-info">
                 <div class="rank-name" id="ui-rank">Bronze</div>
                 <div class="rank-points" id="ui-points">0 / 100.000 Pontos</div>
@@ -149,9 +147,10 @@
         <button class="menu-btn" onclick="startGame('online')">🌐 Jogar Online (Ranked)</button>
         <button class="menu-btn purple" onclick="startGame('pvc')">🤖 Jogar vs IA (Casual)</button>
         <button class="menu-btn" style="border-color: #888; margin-top: 20px;" onclick="openSettings()">🎨 Temas e Definições</button>
-        <button class="menu-btn admin" onclick="requestAdmin()">👑 Painel de Admin</button>
+        <button class="menu-btn admin" onclick="openAdminLogin()">👑 Painel de Admin</button>
     </div>
 
+    <!-- ECRÃ DE ESPERA -->
     <div id="waiting-screen">
         <div class="spinner-box"></div>
         <div class="waiting-text" id="waiting-status">A procurar oponente...</div>
@@ -159,6 +158,7 @@
         <button class="btn-cancel" onclick="cancelMatchmaking()">Cancelar</button>
     </div>
 
+    <!-- JOGO -->
     <div id="game-container">
         <div class="top-bar">
             <span class="title-icon">♞</span>
@@ -171,11 +171,7 @@
                 <button class="btn-ctrl" style="padding: 8px 12px; flex: none;" onclick="toggleHistory()">📜</button>
             </div>
         </div>
-        
-        <div id="board-wrapper">
-            <div id="board"></div>
-        </div>
-        
+        <div id="board-wrapper"><div id="board"></div></div>
         <div class="bottom-bar">
             <button class="btn-ctrl" onclick="askNewGame()">Novo Jogo</button>
             <button class="btn-ctrl" onclick="askResign()" style="color: var(--danger); border-color: rgba(255,51,51,0.3);">Desistir</button>
@@ -183,7 +179,27 @@
         </div>
     </div>
 
-    <!-- CONFIRMAÇÃO -->
+    <!-- MODAL DE LOGIN/REGISTO -->
+    <div class="modal-overlay" id="login-modal">
+        <div class="modal-box">
+            <h2>Entrar / Registar</h2>
+            <p>Introduz o teu e-mail e nome para guardar o teu progresso.</p>
+            <div class="setting-group" style="text-align: left;">
+                <label>E-mail (opcional):</label>
+                <input type="email" id="login-email" placeholder="exemplo@email.com">
+            </div>
+            <div class="setting-group" style="text-align: left;">
+                <label>Nome de Jogador:</label>
+                <input type="text" id="login-name" placeholder="Teu Nome" maxlength="15">
+            </div>
+            <div class="modal-btns">
+                <button class="modal-btn no" onclick="closeLogin()">Cancelar</button>
+                <button class="modal-btn yes" onclick="doLogin()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CONFIRMAÇÃO -->
     <div class="modal-overlay" id="confirm-modal">
         <div class="modal-box">
             <h2 id="confirm-title">Título</h2>
@@ -195,23 +211,47 @@
         </div>
     </div>
 
-    <!-- PAINEL DE ADMIN (DONO) -->
-    <div class="modal-overlay" id="admin-modal">
+    <!-- MODAL LOGIN ADMIN -->
+    <div class="modal-overlay" id="admin-login-modal">
         <div class="modal-box">
-            <h2 style="color: var(--neon-purple);">👑 Painel do Dono</h2>
-            <p>Adicionar pontos ao teu perfil</p>
-            <div class="setting-group" style="text-align: left;">
-                <label>Nome do Jogador:</label>
-                <input type="text" id="admin-player-name" placeholder="Ex: Jogador1">
-            </div>
-            <div class="setting-group" style="text-align: left;">
-                <label>Pontos a Adicionar:</label>
-                <input type="number" id="admin-points" placeholder="Ex: 5000" min="1" max="100000">
+            <h2 style="color: #ffaa00;">👑 Acesso Restrito</h2>
+            <p>Insere a palavra-passe do dono.</p>
+            <div class="setting-group">
+                <input type="password" id="admin-pass" placeholder="Password">
             </div>
             <div class="modal-btns">
-                <button class="modal-btn no" onclick="closeAdmin()">Fechar</button>
-                <button class="modal-btn yes" style="background: var(--neon-purple); color: #fff;" onclick="addPointsAdmin()">Adicionar</button>
+                <button class="modal-btn no" onclick="closeAdminLogin()">Fechar</button>
+                <button class="modal-btn yes" style="background: #ffaa00;" onclick="checkAdminPass()">Entrar</button>
             </div>
+        </div>
+    </div>
+
+    <!-- PAINEL DE ADMIN (DASHBOARD) -->
+    <div class="modal-overlay" id="admin-dashboard">
+        <div class="modal-box">
+            <h2 style="color: var(--neon-purple);">👑 Gestão de Jogadores</h2>
+            
+            <div class="setting-group" style="text-align: left;">
+                <label>Procurar Jogador (Nome):</label>
+                <input type="text" id="admin-search-name" placeholder="Nome exato do jogador">
+                <button class="btn-login" style="margin-top: 5px; width: 100%;" onclick="searchPlayer()">Procurar</button>
+            </div>
+
+            <div id="admin-player-info" style="display: none; background: rgba(128,128,128,0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                <p style="margin-bottom: 5px;">Jogador: <strong id="admin-target-name" style="color: var(--neon-cyan);"></strong></p>
+                <p>Pontos: <strong id="admin-target-pts"></strong></p>
+            </div>
+
+            <div class="setting-group" style="text-align: left;">
+                <label>Quantidade de Pontos:</label>
+                <input type="number" id="admin-amount" placeholder="Ex: 500" min="1">
+            </div>
+
+            <div class="modal-btns">
+                <button class="modal-btn danger" onclick="modifyPoints('remove')">Remover</button>
+                <button class="modal-btn yes" style="background: var(--neon-cyan);" onclick="modifyPoints('add')">Adicionar</button>
+            </div>
+            <button class="btn-cancel" style="margin-top: 10px; width: 100%;" onclick="closeAdminDashboard()">Sair do Painel</button>
         </div>
     </div>
 
@@ -278,82 +318,175 @@
     </div>
 
     <script>
-        // --- CONFIGURAÇÃO DO DONO ---
+        // --- BASE DE DADOS LOCAL (SIMULADA) ---
+        // Estrutura: { "email": { name: "Nome", points: 0 } }
+        function getDB() { return JSON.parse(localStorage.getItem('neon_db')) || {}; }
+        function saveDB(db) { localStorage.setItem('neon_db', JSON.stringify(db)); }
+        
+        let currentUserEmail = localStorage.getItem('current_email') || null;
         const OWNER_PASSWORD = "admin"; 
 
-        // --- SISTEMA DE NOME E RANKS ---
-        const RANKS = [
-            { name: 'Bronze', min: 0, max: 1000 },
-            { name: 'Prata', min: 1001, max: 5000 },
-            { name: 'Ouro', min: 5001, max: 15000 },
-            { name: 'Platina', min: 15001, max: 30000 },
-            { name: 'Diamante', min: 30001, max: 60000 },
-            { name: 'Mestre', min: 60001, max: 99999 },
-            { name: 'Lenda (Leo)', min: 100000, max: 100000 }
-        ];
+        // --- SISTEMA DE PERFIL ---
+        function updateProfileUI() {
+            const db = getDB();
+            let name = "Convidado";
+            let pts = 0;
+            let status = "A jogar como convidado (não guarda progresso).";
 
-        function loadProfile() {
-            const savedName = localStorage.getItem('playerName') || 'Jogador';
-            document.getElementById('player-name').value = savedName;
-            updateRankUI();
-        }
-
-        function savePlayerName() {
-            const newName = document.getElementById('player-name').value.trim();
-            if (newName) localStorage.setItem('playerName', newName);
-            else document.getElementById('player-name').value = localStorage.getItem('playerName') || 'Jogador';
-        }
-
-        function getPlayerPoints() { return parseInt(localStorage.getItem('playerPoints') || '0'); }
-        function setPlayerPoints(pts) { 
-            pts = Math.max(0, Math.min(100000, pts));
-            localStorage.setItem('playerPoints', pts); 
-            updateRankUI();
-        }
-
-        function updateRankUI() {
-            const pts = getPlayerPoints();
-            let rank = RANKS[0];
-            for (let i = RANKS.length - 1; i >= 0; i--) {
-                if (pts >= RANKS[i].min) { rank = RANKS[i]; break; }
+            if (currentUserEmail && db[currentUserEmail]) {
+                name = db[currentUserEmail].name;
+                pts = db[currentUserEmail].points;
+                status = `Sessão iniciada: ${currentUserEmail}`;
+            } else {
+                pts = parseInt(localStorage.getItem('guest_points') || '0');
             }
+
+            document.getElementById('ui-player-name').innerText = name;
+            document.getElementById('ui-player-status').innerText = status;
+            
+            // Ranks
+            const RANKS = [
+                { name: 'Bronze', min: 0, max: 1000 }, { name: 'Prata', min: 1001, max: 5000 },
+                { name: 'Ouro', min: 5001, max: 15000 }, { name: 'Platina', min: 15001, max: 30000 },
+                { name: 'Diamante', min: 30001, max: 60000 }, { name: 'Mestre', min: 60001, max: 99999 },
+                { name: 'Lenda (Leo)', min: 100000, max: 100000 }
+            ];
+            let rank = RANKS[0];
+            for (let i = RANKS.length - 1; i >= 0; i--) { if (pts >= RANKS[i].min) { rank = RANKS[i]; break; } }
+
             document.getElementById('ui-rank').innerText = rank.name;
             document.getElementById('ui-points').innerText = `${pts} / 100.000 Pontos`;
-            
             let percent = (pts / 100000) * 100;
             if (rank.name === 'Lenda (Leo)') percent = 100;
             document.getElementById('ui-rank-bar').style.width = percent + '%';
         }
 
-        // --- ADMIN LOGIC ---
-        function requestAdmin() {
-            const pwd = prompt("Insira a palavra-passe de Dono:");
-            if (pwd === OWNER_PASSWORD) {
-                // Preenche automaticamente com o nome atual
-                document.getElementById('admin-player-name').value = localStorage.getItem('playerName') || 'Jogador';
-                document.getElementById('admin-modal').style.display = 'flex';
-            } else if (pwd !== null) {
-                alert("Palavra-passe incorreta!");
+        function setPoints(amount) {
+            const db = getDB();
+            if (currentUserEmail && db[currentUserEmail]) {
+                db[currentUserEmail].points = Math.max(0, Math.min(100000, db[currentUserEmail].points + amount));
+                saveDB(db);
+            } else {
+                let currentGuest = parseInt(localStorage.getItem('guest_points') || '0');
+                localStorage.setItem('guest_points', Math.max(0, Math.min(100000, currentGuest + amount)));
+            }
+            updateProfileUI();
+        }
+
+        function openLogin() {
+            const db = getDB();
+            if (currentUserEmail) {
+                // Se já tem conta, faz logout
+                if (confirm("Queres terminar a sessão?")) {
+                    currentUserEmail = null;
+                    localStorage.removeItem('current_email');
+                    updateProfileUI();
+                }
+            } else {
+                document.getElementById('login-modal').style.display = 'flex';
             }
         }
 
-        function closeAdmin() { document.getElementById('admin-modal').style.display = 'none'; }
+        function closeLogin() { document.getElementById('login-modal').style.display = 'none'; }
 
-        function addPointsAdmin() {
-            const playerName = document.getElementById('admin-player-name').value || "Jogador";
-            const ptsToAdd = parseInt(document.getElementById('admin-points').value);
+        function doLogin() {
+            const email = document.getElementById('login-email').value.trim().toLowerCase();
+            const name = document.getElementById('login-name').value.trim();
+
+            if (!email || !name) { alert("Preenche o e-mail e o nome."); return; }
+
+            const db = getDB();
+            if (db[email]) {
+                // Conta já existe, faz login
+                if (db[email].name !== name) {
+                    if(!confirm("O nome não corresponde ao e-mail. Queres atualizar o nome?")) return;
+                    db[email].name = name;
+                }
+            } else {
+                // Nova conta
+                db[email] = { name: name, points: 0 };
+            }
+
+            saveDB(db);
+            currentUserEmail = email;
+            localStorage.setItem('current_email', email);
             
-            if (isNaN(ptsToAdd) || ptsToAdd <= 0) {
-                alert("Insira um número válido de pontos.");
-                return;
+            closeLogin();
+            updateProfileUI();
+        }
+
+        // --- LÓGICA DE ADMIN ---
+        let adminTargetEmail = null;
+
+        function openAdminLogin() { document.getElementById('admin-login-modal').style.display = 'flex'; }
+        function closeAdminLogin() { document.getElementById('admin-login-modal').style.display = 'none'; }
+
+        function checkAdminPass() {
+            const pass = document.getElementById('admin-pass').value;
+            if (pass === OWNER_PASSWORD) {
+                closeAdminLogin();
+                document.getElementById('admin-dashboard').style.display = 'flex';
+                document.getElementById('admin-pass').value = '';
+            } else {
+                alert("Password incorreta!");
+            }
+        }
+
+        function closeAdminDashboard() {
+            document.getElementById('admin-dashboard').style.display = 'none';
+            document.getElementById('admin-player-info').style.display = 'none';
+            document.getElementById('admin-search-name').value = '';
+            document.getElementById('admin-amount').value = '';
+            adminTargetEmail = null;
+        }
+
+        function searchPlayer() {
+            const searchName = document.getElementById('admin-search-name').value.trim().toLowerCase();
+            if (!searchName) return;
+
+            const db = getDB();
+            let foundEmail = null;
+
+            // Procura o nome na base de dados
+            for (const email in db) {
+                if (db[email].name.toLowerCase() === searchName) {
+                    foundEmail = email;
+                    break;
+                }
+            }
+
+            if (foundEmail) {
+                adminTargetEmail = foundEmail;
+                document.getElementById('admin-target-name').innerText = db[foundEmail].name;
+                document.getElementById('admin-target-pts').innerText = db[foundEmail].points;
+                document.getElementById('admin-player-info').style.display = 'block';
+            } else {
+                alert("Jogador não encontrado na base de dados local.");
+                document.getElementById('admin-player-info').style.display = 'none';
+                adminTargetEmail = null;
+            }
+        }
+
+        function modifyPoints(action) {
+            if (!adminTargetEmail) { alert("Procura um jogador primeiro."); return; }
+            const amount = parseInt(document.getElementById('admin-amount').value);
+            if (isNaN(amount) || amount <= 0) { alert("Insere uma quantidade válida."); return; }
+
+            const db = getDB();
+            if (action === 'add') {
+                db[adminTargetEmail].points = Math.min(100000, db[adminTargetEmail].points + amount);
+            } else {
+                db[adminTargetEmail].points = Math.max(0, db[adminTargetEmail].points - amount);
             }
             
-            let current = getPlayerPoints();
-            setPlayerPoints(current + ptsToAdd);
+            saveDB(db);
+            document.getElementById('admin-target-pts').innerText = db[adminTargetEmail].points;
+            document.getElementById('admin-amount').value = '';
             
-            alert(`Sucesso! Foram adicionados ${ptsToAdd} pontos ao jogador ${playerName}.`);
-            closeAdmin();
-            document.getElementById('admin-points').value = '';
+            // Atualiza o perfil se o admin for o próprio jogador
+            if (currentUserEmail === adminTargetEmail) updateProfileUI();
+            
+            alert(`Pontos ${action === 'add' ? 'adicionados' : 'removidos'} com sucesso!`);
         }
 
         // --- SISTEMA DE CONFIRMAÇÃO ---
@@ -451,7 +584,6 @@
         }
 
         function startGame(mode) {
-            savePlayerName(); // Guarda o nome antes de jogar
             gameMode = mode;
             document.getElementById('menu-screen').style.opacity = '0';
             setTimeout(() => {
@@ -749,11 +881,11 @@
                     else if (timeSecs < 900) ptsGained = 100;
                     else ptsGained = 10; 
                     
-                    setPlayerPoints(getPlayerPoints() + ptsGained);
+                    setPoints(ptsGained);
                     victoryPts.innerText = `+ ${ptsGained} Pontos`;
                 } else {
                     ptsGained = -20;
-                    setPlayerPoints(getPlayerPoints() + ptsGained);
+                    setPoints(ptsGained);
                     victoryPts.innerText = `${ptsGained} Pontos`;
                 }
                 victoryPts.style.display = 'block';
@@ -772,7 +904,7 @@
             document.getElementById('menu-screen').style.opacity = '1';
             document.getElementById('game-container').style.display = 'none';
             if (channel) { channel.close(); channel = null; }
-            updateRankUI();
+            updateProfileUI();
         }
 
         function startFireworks() {
@@ -834,7 +966,7 @@
         window.addEventListener('DOMContentLoaded', () => {
             initBoard();
             loadSettings();
-            loadProfile();
+            updateProfileUI();
         });
     </script>
 </body>
