@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neon Chess | Premium</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♞</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- MENU INICIAL -->
+    <div id="menu-screen">
+        <h1>NEON CHESS</h1>
+        <button class="menu-btn" onclick="startGame('online')">🌐 Jogar Online (PvP)</button>
+        <button class="menu-btn purple" onclick="startGame('pvc')">🤖 Jogar vs IA</button>
+    </div>
+
+    <!-- ECRÃ DE ESPERA (MATCHMAKING) -->
+    <div id="waiting-screen">
+        <div class="spinner-box"></div>
+        <div class="waiting-text" id="waiting-status">A procurar oponente...</div>
+        <div class="waiting-sub">Abre outra aba do navegador e clica em "Online" para testar.</div>
+        <button class="btn-cancel" onclick="cancelMatchmaking()">Cancelar</button>
+    </div>
+
+    <!-- JOGO -->
+    <div id="game-container">
+        <div class="top-bar">
+            <span class="title-icon">♞</span>
+            <div class="player-info">
+                <div class="turn-dot" id="turn-dot"></div>
+                <span id="turn-text">Vez das Brancas</span>
+            </div>
+            <button class="btn-ctrl" style="padding: 5px 10px; flex: none;" onclick="toggleHistory()">📜</button>
+        </div>
+        
+        <div id="board-wrapper">
+            <div id="board"></div>
+        </div>
+        
+        <div class="bottom-bar">
+            <button class="btn-ctrl" onclick="resetGame()">Novo Jogo</button>
+            <button class="btn-ctrl" onclick="undoMove()">Desfazer</button>
+            <button class="btn-ctrl" onclick="flipBoard()">Rodar</button>
+        </div>
+    </div>
+
+    <!-- MODAL PROMOÇÃO -->
+    <div id="promo-modal">
+        <div class="promo-content">
+            <div class="promo-piece" onclick="selectPromotion('q')">♕</div>
+            <div class="promo-piece" onclick="selectPromotion('r')">♖</div>
+            <div class="promo-piece" onclick="selectPromotion('b')">♗</div>
+            <div class="promo-piece" onclick="selectPromotion('n')">♘</div>
+        </div>
+    </div>
+
+    <!-- HISTÓRICO -->
+    <div id="history-panel">
+        <h3 style="margin-bottom: 15px; color: #00f3ff; font-weight: 600;">Movimentos</h3>
+        <ul class="move-list" id="move-list"></ul>
+    </div>
+
+    <!-- VITÓRIA E FOGOS -->
+    <div id="victory-screen">
+        <canvas id="fireworks-canvas"></canvas>
+        <div class="victory-content">
+            <div class="victory-title" id="victory-title">FIM DE JOGO</div>
+            <div class="victory-subtitle" id="victory-subtitle">Vencedor: Brancas</div>
+            <button class="victory-btn" onclick="closeVictory()">Jogar Novamente</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
