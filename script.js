@@ -8,7 +8,6 @@ const turnText = document.getElementById('turn-text');
 const turnDot = document.getElementById('turn-dot');
 const moveListEl = document.getElementById('move-list');
 const victoryScreen = document.getElementById('victory-screen');
-const victoryTitle = document.getElementById('victory-title');
 const victorySubtitle = document.getElementById('victory-subtitle');
 
 let board = new Array(64).fill(null);
@@ -36,6 +35,7 @@ const initialBoard = [
     'P','P','P','P','P','P','P','P',
     'R','N','B','Q','K','B','N','R'
 ];
+
 const pieceValues = { 'p': 10, 'n': 30, 'b': 30, 'r': 50, 'q': 90, 'k': 900 };
 
 function initBoard() {
@@ -296,4 +296,186 @@ function finalizeMove(move) {
     if (move.isEnPassant) board[move.piece === 'P' ? move.to + 8 : move.to - 8] = null;
 
     enPassantTarget = null;
-    if (move.piece.toLowerCase() === 'p'
+    if (move.piece.toLowerCase() === 'p' && Math.abs(move.to - move.from) === 16) {
+        enPassantTarget = (move.to + move.from) / 2;
+    }
+
+    const notation = `${move.piece.toUpperCase()}${String.fromCharCode(97 + (move.from % 8))}${8 - Math.floor(move.from / 8)}-${String.fromCharCode(97 + (move.to % 8))}${8 - Math.floor(move.to / 8)}`;
+    algebraicHistory.push({ from: move.from, to: move.to, notation: notation });
+    
+    if (turn === 'b') {
+        const li = document.createElement('li');
+        li.innerHTML = `<span>${moveNumber}.</span> ${notation}`;
+        moveListEl.appendChild(li);
+        moveNumber++;
+    } else {
+        const lastLi = moveListEl.lastElementChild;
+        if (lastLi) lastLi.innerHTML += ` ${notation}`;
+        else {
+            const li = document.createElement('li');
+            li.innerHTML = `<span>${moveNumber}.</span> ... ${notation}`;
+            moveListEl.appendChild(li);
+        }
+    }
+
+    turn = turn === 'w' ? 'b' : 'w';
+    selectedSquare = null;
+    legalMovesForSelected = [];
+    
+    renderBoard();
+    checkGameState();
+
+    if (isOnlineGame && channel) {
+        channel.postMessage({ type: 'move', move: move });
+    }
+
+    if (gameMode === 'pvc' && turn === 'b' && !isGameOver) {
+        setTimeout(makeAIMove, 300);
+    }
+}
+
+function resetGame() { 
+    initBoard(); 
+    if (isOnlineGame && channel) channel.postMessage({ type: 'reset' });
+}
+
+function flipBoard() { isFlipped = !isFlipped; renderBoard(); }
+function toggleHistory() { document.getElementById('history-panel').classList.toggle('open'); }
+
+function undoMove() {
+    if (history.length === 0 || isGameOver) return;
+    const steps = (gameMode === 'pvc' && turn === 'w' && history.length >= 2) ? 2 : 1;
+    for (let i = 0; i < steps; i++) {
+        if (history.length === 0) break;
+        const prevState = history.pop();
+        board = prevState.board;
+        turn = prevState.turn;
+        enPassantTarget = prevState.enPassantTarget;
+        moveNumber = prevState.moveNumber;
+        algebraicHistory.pop();
+        if (moveListEl.lastElementChild) {
+            if (moveListEl.lastElementChild.innerHTML.includes('...')) moveListEl.lastElementChild.remove();
+            else moveListEl.lastElementChild.innerHTML = moveListEl.lastElementChild.innerHTML.replace(/ [A-Za-z][0-9]-[A-Za-z][0-9].*/, '');
+        }
+    }
+    selectedSquare = null;
+    legalMovesForSelected = [];
+    isGameOver = false;
+    victoryScreen.style.display = 'none';
+    if (fireworksInterval) clearInterval(fireworksInterval);
+    if (animationId) cancelAnimationFrame(animationId);
+    renderBoard();
+    checkGameState();
+}
+
+function makeAIMove() {
+    if (isGameOver) return;
+    let bestMove = null;
+    let bestScore = -Infinity;
+
+    for (let i = 0; i < 64; i++) {
+        const piece = board[i];
+        if (piece && piece === piece.toLowerCase()) { 
+            const moves = getLegalMoves(i, piece, board, enPassantTarget);
+            for (let move of moves) {
+                const testBoard = [...board];
+                testBoard[move.to] = move.piece;
+                testBoard[move.from] = null;
+                if (move.isEnPassant) testBoard[move.to - 8] = null;
+
+                let score = evaluateBoard(testBoard);
+                if (isKingInCheck('b', testBoard)) score -= 50;
+                score += Math.random() * 5;
+
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMove = move;
+                }
+            }
+        }
+    }
+    if (bestMove) executeMove(bestMove);
+}
+
+function evaluateBoard(currentBoard) {
+    let score = 0;
+    for (let piece of currentBoard) {
+        if (piece) {
+            const val = pieceValues[piece.toLowerCase()];
+            if (piece === piece.toLowerCase()) score += val;
+            else score -= val;
+        }
+    }
+    return score; 
+}
+
+function showVictory(text) {
+    victorySubtitle.innerText = text;
+    victoryScreen.style.display = 'flex';
+    startFireworks();
+}
+
+function closeVictory() {
+    victoryScreen.style.display = 'none';
+    if (isOnlineGame) {
+        initBoard();
+        if (channel) channel.postMessage({ type: 'reset' });
+    } else {
+        initBoard();
+    }
+    document.getElementById('menu-screen').style.display = 'flex';
+    document.getElementById('menu-screen').style.opacity = '1';
+    document.getElementById('game-container').style.display = 'none';
+    if (channel) { channel.close(); channel = null; }
+}
+
+function startFireworks() {
+    const canvas = document.getElementById('fireworks-canvas');
+    const ctx = canvas.getContext('2d');
+    let width = canvas.width = window.innerWidth;
+    let height = canvas.height = window.innerHeight;
+    let particles = [];
+
+    class Particle {
+        constructor(x, y, color) {
+            this.x = x; this.y = y; this.color = color;
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 4 + 1;
+            this.vx = Math.cos(angle) * speed; this.vy = Math.sin(angle) * speed;
+            this.life = 1; this.decay = Math.random() * 0.015 + 0.01;
+        }
+        update() {
+            this.x += this.vx; this.y += this.vy;
+            this.vx *= 0.96; this.vy *= 0.96; this.vy += 0.05;
+            this.life -= this.decay;
+        }
+        draw() {
+            ctx.beginPath(); ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${this.color}, ${this.life})`; ctx.fill();
+        }
+    }
+
+    function createExplosion(x, y) {
+        const colors = ['0, 243, 255', '184, 0, 255', '255, 255, 255'];
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        for (let i = 0; i < 50; i++) particles.push(new Particle(x, y, color));
+    }
+
+    function loop() {
+        ctx.fillStyle = 'rgba(10, 10, 12, 0.2)';
+        ctx.fillRect(0, 0, width, height);
+        if (Math.random() < 0.05 && particles.length < 400) createExplosion(Math.random() * width, Math.random() * height * 0.6);
+        for (let i = particles.length - 1; i >= 0; i--) {
+            const p = particles[i];
+            p.update(); p.draw();
+            if (p.life <= 0) particles.splice(i, 1);
+        }
+        animationId = requestAnimationFrame(loop);
+    }
+    loop();
+}
+
+// Inicialização
+window.addEventListener('DOMContentLoaded', () => {
+    initBoard();
+});
