@@ -5,154 +5,69 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Neon Chess | Premium</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♞</text></svg>">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    <style>
-        :root { --bg:#0b0e14; --pnl:#151b26; --txt:#fff; --mut:#9ca3af; --acc:#10b981; --blu:#3b82f6; --dgr:#ef4444; --brd:rgba(255,255,255,0.08); --lt:#ebecd0; --dk:#779556; --shd:0 10px 25px -5px rgba(0,0,0,0.5); }
-        body.light { --bg:#f8f9fa; --pnl:#fff; --txt:#111827; --mut:#6b7280; --brd:rgba(0,0,0,0.08); --shd:0 10px 25px -5px rgba(0,0,0,0.1); }
-        * { box-sizing:border-box; margin:0; padding:0; user-select:none; -webkit-tap-highlight-color:transparent; transition:background 0.3s, color 0.3s; font-family:'Inter',sans-serif; }
-        html,body { height:100dvh; overflow:hidden; }
-        body { background:var(--bg); color:var(--txt); display:flex; }
-        .sidebar { width:70px; background:var(--pnl); border-right:1px solid var(--brd); display:flex; flex-direction:column; align-items:center; padding:20px 0; z-index:100; flex-shrink:0; }
-        .logo { font-size:2rem; color:var(--acc); margin-bottom:30px; }
-        .n-btn { width:50px; height:50px; border-radius:12px; background:transparent; border:none; color:var(--mut); display:flex; justify-content:center; align-items:center; margin-bottom:10px; cursor:pointer; font-size:1.2rem; }
-        .n-btn:hover,.n-btn.act { background:var(--pnl); color:var(--txt); filter:brightness(1.2); }
-        .n-btn svg { width:24px; height:24px; fill:currentColor; }
-        .sb-bot { margin-top:auto; display:flex; flex-direction:column; align-items:center; gap:15px; width:100%; }
-        .av-sm { width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,var(--blu),var(--acc)); display:flex; justify-content:center; align-items:center; font-weight:bold; color:#fff; cursor:pointer; }
-        .main { flex:1; display:flex; flex-direction:column; height:100%; overflow:hidden; }
-        .view { display:none; width:100%; height:100%; overflow-y:auto; }
-        .view.act { display:flex; flex-direction:column; }
-        #v-home { padding:40px; align-items:center; }
-        .dash { width:100%; max-width:1100px; display:grid; grid-template-columns:350px 1fr; gap:30px; }
-        .card { background:var(--pnl); border-radius:16px; padding:25px; box-shadow:var(--shd); border:1px solid var(--brd); display:flex; flex-direction:column; gap:20px; }
-        .p-head { display:flex; align-items:center; gap:15px; }
-        .av-lg { width:80px; height:80px; border-radius:12px; background:linear-gradient(135deg,var(--blu),var(--acc)); display:flex; justify-content:center; align-items:center; font-size:2rem; font-weight:bold; color:#fff; }
-        .p-info h2 { font-size:1.5rem; margin-bottom:5px; }
-        .p-info p { color:var(--mut); font-size:0.9rem; }
-        .stats { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; background:var(--bg); padding:15px; border-radius:12px; text-align:center; }
-        .st-box h4 { font-size:0.75rem; color:var(--mut); margin-bottom:5px; text-transform:uppercase; }
-        .st-box div { font-size:1.2rem; font-weight:bold; }
-        .wr-bar { width:100%; height:10px; background:var(--dgr); border-radius:5px; overflow:hidden; display:flex; margin:10px 0; }
-        .wr-fill { height:100%; background:var(--acc); transition:width 0.5s; }
-        .a-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; align-content:start; }
-        .a-card { background:var(--pnl); border:1px solid var(--brd); border-radius:16px; padding:30px; text-align:center; cursor:pointer; transition:0.2s; box-shadow:var(--shd); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:15px; }
-        .a-card:hover { transform:translateY(-5px); border-color:var(--acc); }
-        .a-card h2 { font-size:1.3rem; }
-        .a-card p { color:var(--mut); font-size:0.9rem; }
-        .icon-lg { font-size:3rem; }
-        #v-game { flex-direction:row; justify-content:center; align-items:stretch; }
-        .g-area { display:flex; flex-direction:column; flex:1; max-width:800px; padding:20px; justify-content:center; }
-        .p-strip { display:flex; justify-content:space-between; align-items:center; background:var(--pnl); padding:10px 15px; border-radius:8px; margin:5px 0; border:1px solid var(--brd); }
-        .p-det { display:flex; align-items:center; gap:10px; }
-        .p-av { width:35px; height:35px; border-radius:6px; background:var(--bg); display:flex; justify-content:center; align-items:center; font-weight:bold; }
-        .clock { font-family:monospace; font-size:1.5rem; font-weight:bold; background:var(--bg); padding:5px 15px; border-radius:6px; }
-        .clock.act { background:var(--acc); color:#000; }
-        .b-wrap { width:100%; aspect-ratio:1/1; background:var(--pnl); padding:5px; border-radius:8px; box-shadow:var(--shd); }
-        #board { display:grid; grid-template-columns:repeat(8,1fr); grid-template-rows:repeat(8,1fr); width:100%; height:100%; }
-        .sq { display:flex; justify-content:center; align-items:center; position:relative; cursor:pointer; font-size:9vw; }
-        @media (min-width:600px){ .sq { font-size:55px; } }
-        .sq.lt { background:var(--lt); color:#333; } .sq.dk { background:var(--dk); color:#333; }
-        .pc { filter:drop-shadow(0px 3px 2px rgba(0,0,0,0.4)); z-index:2; transition:transform 0.1s; }
-        .pc:hover { transform:scale(1.05); }
-        .p-w { color:#fff; -webkit-text-stroke:1px #333; } .p-b { color:#111; -webkit-text-stroke:1px #999; }
-        .sq::before { content:attr(data-f); position:absolute; bottom:2px; right:4px; font-size:0.55rem; font-weight:bold; opacity:0.4; }
-        .sq::after { content:attr(data-r); position:absolute; top:2px; left:4px; font-size:0.55rem; font-weight:bold; opacity:0.4; }
-        .hl-dot::before { content:''; position:absolute; width:30%; height:30%; background:rgba(0,0,0,0.2); border-radius:50%; top:50%; left:50%; transform:translate(-50%,-50%); z-index:1; }
-        .hl-cap::after { content:''; position:absolute; width:90%; height:90%; border:4px solid rgba(0,0,0,0.2); border-radius:50%; top:50%; left:50%; transform:translate(-50%,-50%); z-index:1; }
-        .chk { background:rgba(239,68,68,0.8) !important; }
-        .last { background:rgba(255,255,0,0.4) !important; }
-        .g-side { width:300px; background:var(--pnl); border-left:1px solid var(--brd); display:flex; flex-direction:column; flex-shrink:0; }
-        .m-title { padding:15px; border-bottom:1px solid var(--brd); font-weight:bold; display:flex; justify-content:space-between; }
-        .m-list { list-style:none; flex:1; overflow-y:auto; }
-        .m-list li { padding:8px 15px; display:flex; font-family:monospace; font-size:1rem; border-bottom:1px solid rgba(255,255,255,0.02); }
-        .m-list li:nth-child(even){ background:rgba(255,255,255,0.02); }
-        .m-list .num { color:var(--mut); width:40px; }
-        .m-list .move { width:50%; }
-        .g-act { padding:15px; border-top:1px solid var(--brd); display:flex; gap:10px; }
-        .btn-g { flex:1; padding:12px; border-radius:6px; border:none; font-weight:bold; cursor:pointer; background:var(--pnl); color:var(--txt); transition:0.2s; filter:brightness(1.2); }
-        .btn-g:hover { filter:brightness(1.4); }
-        .btn-g.dgr { background:rgba(239,68,68,0.2); color:var(--dgr); }
-        .btn-g.dgr:hover { background:rgba(239,68,68,0.4); }
-        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); backdrop-filter:blur(4px); z-index:1000; justify-content:center; align-items:center; padding:15px; }
-        .m-box { background:var(--pnl); padding:30px; border-radius:16px; border:1px solid var(--brd); width:100%; max-width:400px; box-shadow:var(--shd); }
-        .m-box h2 { color:var(--txt); margin-bottom:20px; font-size:1.5rem; text-align:center; }
-        .f-group { margin-bottom:15px; }
-        .f-group label { display:block; margin-bottom:8px; font-size:0.9rem; color:var(--mut); }
-        .f-group input, .f-group select { width:100%; padding:12px; background:var(--bg); border:1px solid var(--brd); color:var(--txt); border-radius:8px; outline:none; font-size:1rem; }
-        .f-group input:focus { border-color:var(--blu); }
-        .btn-p { width:100%; padding:15px; background:var(--acc); color:#fff; border:none; border-radius:8px; font-weight:bold; font-size:1rem; cursor:pointer; transition:0.2s; margin-top:10px; }
-        .btn-p:hover { filter:brightness(1.1); }
-        .btn-s { width:100%; padding:15px; background:transparent; border:1px solid var(--brd); color:var(--txt); border-radius:8px; font-weight:bold; font-size:1rem; cursor:pointer; margin-top:10px; }
-        #toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(100px); background:var(--acc); color:#fff; padding:12px 25px; border-radius:8px; font-weight:bold; box-shadow:0 5px 15px rgba(0,0,0,0.5); opacity:0; transition:0.3s; z-index:2000; pointer-events:none; }
-        #toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
-        @media (max-width:900px){
-            .dash { grid-template-columns:1fr; padding-bottom:80px; }
-            #v-game { flex-direction:column; padding-bottom:60px; }
-            .g-side { position:fixed; bottom:0; left:0; width:100%; height:250px; transform:translateY(100%); transition:transform 0.3s; z-index:500; border-left:none; border-top:1px solid var(--brd); }
-            .g-side.open { transform:translateY(0); }
-            .g-area { padding:10px; }
-            .sidebar { width:100%; height:60px; position:fixed; bottom:0; left:0; flex-direction:row; justify-content:space-around; padding:0; border-right:none; border-top:1px solid var(--brd); z-index:600; }
-            .logo,.sb-bot { display:none; }
-            .n-btn { margin-bottom:0; width:60px; height:60px; border-radius:0; }
-            .main { height:calc(100dvh - 60px); padding-bottom:0; }
-            #v-home { padding:20px; }
-            .btn-close-m { display:block; }
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+    <!-- SIDEBAR (Menu de Navegação) -->
     <aside class="sidebar">
-        <div class="logo">♞</div>
-        <button class="n-btn act" onclick="switchView('home-view', this)">
+        <div class="logo-icon">♞</div>
+        <button class="nav-btn active" onclick="switchView('home-view', this)">
             <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
         </button>
-        <button class="n-btn" onclick="switchView('play-view', this)">
+        <button class="nav-btn" onclick="switchView('play-view', this)">
             <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
         </button>
-        <button class="n-btn" onclick="switchView('settings-view', this)">
+        <button class="nav-btn" onclick="switchView('settings-view', this)">
             <svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
         </button>
-        <div class="sb-bot">
-            <button class="n-btn" onclick="openAdminLogin()">
+        <div class="sidebar-bottom">
+            <button class="nav-btn" onclick="openAdminLogin()">
                 <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zm0 9l2.5-1.25L12 8.5l-2.5 1.25L12 11zm0 2.5l-5-2.5-5 2.5L12 22l10-8.5-5-2.5-5 2.5z"/></svg>
             </button>
-            <div class="av-sm" onclick="openLogin()" id="sidebar-avatar">G</div>
+            <div class="avatar-small" onclick="openLogin()" id="sidebar-avatar">G</div>
         </div>
     </aside>
 
-    <main class="main">
-        <section id="home-view" class="view act">
-            <div class="dash">
-                <div class="card">
-                    <div class="p-head">
-                        <div class="av-lg" id="dash-avatar">G</div>
-                        <div class="p-info">
+    <!-- MAIN WRAPPER -->
+    <main class="main-wrapper">
+        
+        <!-- VIEW: DASHBOARD -->
+        <section id="home-view" class="view-section active">
+            <div class="dash-container">
+                <!-- Card de Perfil (Estilo Chess.com) -->
+                <div class="profile-card">
+                    <div class="profile-header">
+                        <div class="avatar-large" id="dash-avatar">G</div>
+                        <div class="profile-info">
                             <h2 id="dash-name">Convidado</h2>
                             <p><span style="font-size: 1.2rem;">🇵🇹</span> Portugal</p>
                         </div>
                     </div>
-                    <div class="stats">
-                        <div class="st-box"><h4>Rating</h4><div style="color:var(--blu);" id="dash-rating">1200</div></div>
-                        <div class="st-box"><h4>Partidas</h4><div id="dash-total">0</div></div>
-                        <div class="st-box"><h4>Win Rate</h4><div style="color:var(--acc);" id="dash-winrate">0%</div></div>
+                    <div class="stats-row">
+                        <div class="stat-box"><h4>Rating</h4><div style="color: var(--accent-blue);" id="dash-rating">1200</div></div>
+                        <div class="stat-box"><h4>Partidas</h4><div id="dash-total">0</div></div>
+                        <div class="stat-box"><h4>Win Rate</h4><div style="color: var(--accent);" id="dash-winrate">0%</div></div>
                     </div>
                     <div>
-                        <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:5px; color:var(--mut);">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 5px; color: var(--text-muted);">
                             <span id="dash-wins-text">0 Vitórias</span>
                             <span id="dash-losses-text">0 Derrotas</span>
                         </div>
-                        <div class="wr-bar"><div class="wr-fill" id="dash-winrate-bar" style="width:0%;"></div></div>
+                        <div class="win-rate-bar"><div class="win-rate-fill" id="dash-winrate-bar" style="width: 0%;"></div></div>
                     </div>
                 </div>
-                <div class="a-grid">
-                    <div class="a-card" onclick="startGame('pvc')">
-                        <div class="icon-lg">🤖</div>
+
+                <!-- Ações de Jogo -->
+                <div class="action-grid">
+                    <div class="action-card" onclick="startGame('pvc')">
+                        <div class="icon-large">🤖</div>
                         <h2>Jogar vs Computador</h2>
                         <p>Modo Casual. Treina sem afetar o rank.</p>
                     </div>
-                    <div class="a-card" onclick="startGame('online')">
-                        <div class="icon-lg">🌐</div>
+                    <div class="action-card" onclick="startGame('online')">
+                        <div class="icon-large">🌐</div>
                         <h2>Jogar Online (Ranked)</h2>
                         <p>Encontra um adversário e ganha ELO.</p>
                     </div>
@@ -160,147 +75,65 @@
             </div>
         </section>
 
-        <section id="play-view" class="view">
-            <div class="g-area">
-                <div class="p-strip">
-                    <div class="p-det">
-                        <div class="p-av">🤖</div>
-                        <div><div style="font-weight:bold; font-size:0.9rem;" id="opp-name">Oponente</div><div style="font-size:0.75rem; color:var(--mut);" id="opp-rating">---</div></div>
+        <!-- VIEW: SALA DE JOGO -->
+        <section id="play-view" class="view-section">
+            
+            <div class="game-area">
+                <!-- Oponente -->
+                <div class="player-strip">
+                    <div class="player-details">
+                        <div class="player-avatar">🤖</div>
+                        <div><div style="font-weight: bold; font-size: 0.9rem;" id="opp-name">Oponente</div><div style="font-size: 0.75rem; color: var(--text-muted);" id="opp-rating">---</div></div>
                     </div>
                     <div class="clock" id="clock-top">10:00</div>
                 </div>
-                <div class="b-wrap"><div id="board"></div></div>
-                <div class="p-strip">
-                    <div class="p-det">
-                        <div class="p-av" id="game-avatar">G</div>
-                        <div><div style="font-weight:bold; font-size:0.9rem;" id="game-name">Tu</div><div style="font-size:0.75rem; color:var(--mut);" id="game-rating">1200</div></div>
+
+                <!-- Tabuleiro -->
+                <div class="board-container"><div id="board"></div></div>
+
+                <!-- Jogador (Tu) -->
+                <div class="player-strip">
+                    <div class="player-details">
+                        <div class="player-avatar" id="game-avatar">G</div>
+                        <div><div style="font-weight: bold; font-size: 0.9rem;" id="game-name">Tu</div><div style="font-size: 0.75rem; color: var(--text-muted);" id="game-rating">1200</div></div>
                     </div>
-                    <div class="clock act" id="clock-bottom">10:00</div>
+                    <div class="clock active" id="clock-bottom">10:00</div>
                 </div>
             </div>
-            <div class="g-side" id="game-sidebar">
-                <div class="m-title"><span>Movimentos</span><button class="btn-close-m" style="background:none;border:none;color:var(--txt);cursor:pointer;display:none;" onclick="document.getElementById('game-sidebar').classList.remove('open')">✖</button></div>
-                <ul class="m-list" id="move-list"></ul>
-                <div class="g-act">
-                    <button class="btn-g" onclick="askNewGame()">Novo Jogo</button>
-                    <button class="btn-g dgr" onclick="askResign()">Desistir</button>
+
+            <!-- Sidebar do Jogo (Histórico) -->
+            <div class="game-sidebar" id="game-sidebar">
+                <div class="move-history-title">
+                    <span>Movimentos</span>
+                    <button class="btn-close-history" onclick="document.getElementById('game-sidebar').classList.remove('open')">✖</button>
+                </div>
+                <ul class="move-list" id="move-list"></ul>
+                <div class="game-actions">
+                    <button class="btn-game" onclick="askNewGame()">Novo Jogo</button>
+                    <button class="btn-game danger" onclick="askResign()">Desistir</button>
                 </div>
             </div>
         </section>
 
-        <section id="settings-view" class="view" style="padding:40px; align-items:center;">
-            <div class="card" style="width:100%; max-width:500px;">
-                <h2 style="margin-bottom:20px;">Definições</h2>
-                <div class="f-group"><label>Interface</label><select id="set-theme" onchange="applySettings()"><option value="dark">Escuro (Cyberpunk)</option><option value="light">Claro (Clássico)</option></select></div>
-                <div class="f-group"><label>Estilo das Peças</label><select id="set-pieces" onchange="applySettings()"><option value="classic">Clássico (Unicode)</option><option value="modern">Neon Sólido</option><option value="outline">Contorno</option><option value="letters">Letras</option></select></div>
-                <div class="f-group"><label>Cor do Tabuleiro</label><select id="set-board" onchange="applySettings()"><option value="classic">Madeira (Clássico)</option><option value="dark">Neon Escuro</option><option value="cyberpunk">Azul Cyberpunk</option><option value="emerald">Esmeralda</option><option value="purple">Roxo Místico</option></select></div>
+        <!-- VIEW: DEFINIÇÕES -->
+        <section id="settings-view" class="view-section" style="padding: 40px; align-items: center;">
+            <div class="profile-card" style="width: 100%; max-width: 500px;">
+                <h2 style="margin-bottom: 20px;">Definições</h2>
+                <div class="form-group"><label>Interface</label><select id="set-theme" onchange="applySettings()"><option value="dark">Escuro (Cyberpunk)</option><option value="light">Claro (Clássico)</option></select></div>
+                <div class="form-group"><label>Estilo das Peças</label><select id="set-pieces" onchange="applySettings()"><option value="classic">Clássico (Unicode)</option><option value="modern">Neon Sólido</option><option value="outline">Contorno</option><option value="letters">Letras</option></select></div>
+                <div class="form-group"><label>Cor do Tabuleiro</label><select id="set-board" onchange="applySettings()"><option value="classic">Madeira (Clássico)</option><option value="dark">Neon Escuro</option><option value="cyberpunk">Azul Cyberpunk</option><option value="emerald">Esmeralda</option><option value="purple">Roxo Místico</option></select></div>
             </div>
         </section>
     </main>
 
-    <div class="modal" id="login-modal"><div class="m-box"><h2>Entrar / Registar</h2><div class="f-group"><label>E-mail</label><input type="email" id="login-email" placeholder="exemplo@email.com"></div><div class="f-group"><label>Nome de Jogador</label><input type="text" id="login-name" placeholder="O teu nome" maxlength="15"></div><button class="btn-p" onclick="doLogin()">Entrar</button><button class="btn-s" onclick="closeModal('login-modal')">Cancelar</button></div></div>
-    <div class="modal" id="admin-login-modal"><div class="m-box"><h2>👑 Área Restrita</h2><div class="f-group"><label>Password</label><input type="password" id="admin-pass" placeholder="admin"></div><button class="btn-p" style="background:var(--blu);" onclick="checkAdmin()">Entrar</button><button class="btn-s" onclick="closeModal('admin-login-modal')">Fechar</button></div></div>
-    <div class="modal" id="admin-dashboard"><div class="m-box"><h2>👑 Gestão</h2><div class="f-group"><label>Procurar Jogador (Nome)</label><div style="display:flex; gap:10px;"><input type="text" id="admin-search" placeholder="Nome exato"><button class="btn-p" style="width:auto; margin:0; padding:0 15px;" onclick="searchPlayer()">Procurar</button></div></div><div id="admin-result" style="display:none; background:var(--bg); padding:15px; border-radius:8px; margin-bottom:15px;"><p style="color:var(--mut); font-size:0.9rem;">Jogador: <strong id="admin-target-name" style="color:var(--acc);"></strong></p><p style="color:var(--mut); font-size:0.9rem;">Pontos: <strong id="admin-target-pts"></strong></p></div><div class="f-group"><label>Pontos</label><input type="number" id="admin-amount" placeholder="Ex: 500"></div><div style="display:flex; gap:10px;"><button class="btn-p" style="background:var(--dgr);" onclick="modifyPoints('remove')">Remover</button><button class="btn-p" onclick="modifyPoints('add')">Adicionar</button></div><button class="btn-s" onclick="closeModal('admin-dashboard')">Fechar</button></div></div>
-    <div class="modal" id="confirm-modal"><div class="m-box"><h2 id="confirm-title">Título</h2><p id="confirm-msg" style="color:var(--mut); margin-bottom:20px;">Mensagem</p><div style="display:flex; gap:10px;"><button class="btn-s" onclick="closeConfirm(false)">Cancelar</button><button class="btn-p" id="confirm-btn-yes" onclick="closeConfirm(true)">Sim</button></div></div></div>
-    <div class="modal" id="promo-modal"><div class="m-box" style="text-align:center;"><h2>Promover Peão</h2><div style="display:flex; justify-content:center; gap:20px; font-size:3rem; cursor:pointer;"><div onclick="selectPromotion('q')" class="p-w">♕</div><div onclick="selectPromotion('r')" class="p-w">♖</div><div onclick="selectPromotion('b')" class="p-w">♗</div><div onclick="selectPromotion('n')" class="p-w">♘</div></div></div></div>
+    <!-- MODAIS (Login, Admin, Confirmação, Promoção) -->
+    <div class="modal-overlay" id="login-modal"><div class="modal-box"><h2>Entrar / Registar</h2><div class="form-group"><label>E-mail</label><input type="email" id="login-email" placeholder="exemplo@email.com"></div><div class="form-group"><label>Nome de Jogador</label><input type="text" id="login-name" placeholder="O teu nome" maxlength="15"></div><button class="btn-primary" onclick="doLogin()">Entrar</button><button class="btn-secondary" onclick="closeModal('login-modal')">Cancelar</button></div></div>
+    <div class="modal-overlay" id="admin-login-modal"><div class="modal-box"><h2>👑 Área Restrita</h2><div class="form-group"><label>Password</label><input type="password" id="admin-pass" placeholder="admin"></div><button class="btn-primary" style="background: var(--accent-blue);" onclick="checkAdmin()">Entrar</button><button class="btn-secondary" onclick="closeModal('admin-login-modal')">Fechar</button></div></div>
+    <div class="modal-overlay" id="admin-dashboard"><div class="modal-box"><h2>👑 Gestão</h2><div class="form-group"><label>Procurar Jogador (Nome)</label><div style="display: flex; gap: 10px;"><input type="text" id="admin-search" placeholder="Nome exato"><button class="btn-primary" style="width: auto; margin: 0; padding: 0 15px;" onclick="searchPlayer()">Procurar</button></div></div><div id="admin-result" style="display: none; background: var(--bg-base); padding: 15px; border-radius: 8px; margin-bottom: 15px;"><p style="color: var(--text-muted); font-size: 0.9rem;">Jogador: <strong id="admin-target-name" style="color: var(--accent);"></strong></p><p style="color: var(--text-muted); font-size: 0.9rem;">Pontos: <strong id="admin-target-pts"></strong></p></div><div class="form-group"><label>Pontos</label><input type="number" id="admin-amount" placeholder="Ex: 500"></div><div style="display: flex; gap: 10px;"><button class="btn-primary" style="background: var(--danger);" onclick="modifyPoints('remove')">Remover</button><button class="btn-primary" onclick="modifyPoints('add')">Adicionar</button></div><button class="btn-secondary" onclick="closeModal('admin-dashboard')">Fechar</button></div></div>
+    <div class="modal-overlay" id="confirm-modal"><div class="modal-box"><h2 id="confirm-title">Título</h2><p id="confirm-msg" style="color: var(--text-muted); margin-bottom: 20px;">Mensagem</p><div style="display: flex; gap: 10px;"><button class="btn-secondary" onclick="closeConfirm(false)">Cancelar</button><button class="btn-primary" id="confirm-btn-yes" onclick="closeConfirm(true)">Sim</button></div></div></div>
+    <div class="modal-overlay" id="promo-modal"><div class="modal-box" style="text-align: center;"><h2>Promover Peão</h2><div style="display: flex; justify-content: center; gap: 20px; font-size: 3rem; cursor: pointer;"><div onclick="selectPromotion('q')" class="piece-w">♕</div><div onclick="selectPromotion('r')" class="piece-w">♖</div><div onclick="selectPromotion('b')" class="piece-w">♗</div><div onclick="selectPromotion('n')" class="piece-w">♘</div></div></div></div>
     <div id="toast">Notificação</div>
 
-    <script>
-        // --- BASE DE DADOS ---
-        function getDB() { return JSON.parse(localStorage.getItem('neon_db')) || {}; }
-        function saveDB(db) { localStorage.setItem('neon_db', JSON.stringify(db)); }
-        let currentUserEmail = localStorage.getItem('current_email') || null;
-        const ADMIN_PASSWORD = "admin";
-
-        function showToast(msg, color = 'var(--acc)') {
-            const toast = document.getElementById('toast');
-            toast.innerText = msg; toast.style.background = color;
-            toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 3000);
-        }
-
-        function switchView(viewId, btnElement) {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('act'));
-            document.getElementById(viewId).classList.add('act');
-            document.querySelectorAll('.n-btn').forEach(b => b.classList.remove('act'));
-            if(btnElement) btnElement.classList.add('act');
-        }
-
-        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
-        // --- PERFIL ---
-        function updateProfileUI() {
-            const db = getDB();
-            let name = "Convidado", pts = 1200, wins = 0, losses = 0;
-            if (currentUserEmail && db[currentUserEmail]) {
-                name = db[currentUserEmail].name; pts = db[currentUserEmail].points;
-                wins = db[currentUserEmail].wins || 0; losses = db[currentUserEmail].losses || 0;
-            } else { pts = parseInt(localStorage.getItem('guest_points') || '1200'); }
-
-            const total = wins + losses, winrate = total > 0 ? Math.round((wins / total) * 100) : 0;
-            document.getElementById('dash-name').innerText = name;
-            document.getElementById('dash-avatar').innerText = name.charAt(0).toUpperCase();
-            document.getElementById('dash-rating').innerText = pts;
-            document.getElementById('dash-total').innerText = total;
-            document.getElementById('dash-winrate').innerText = winrate + '%';
-            document.getElementById('dash-wins-text').innerText = wins + ' Vitórias';
-            document.getElementById('dash-losses-text').innerText = losses + ' Derrotas';
-            document.getElementById('dash-winrate-bar').style.width = winrate + '%';
-            document.getElementById('sidebar-avatar').innerText = name.charAt(0).toUpperCase();
-            document.getElementById('game-name').innerText = name;
-            document.getElementById('game-avatar').innerText = name.charAt(0).toUpperCase();
-            document.getElementById('game-rating').innerText = pts;
-        }
-
-        function openLogin() {
-            if (currentUserEmail) { if (confirm("Terminar sessão?")) { currentUserEmail = null; localStorage.removeItem('current_email'); updateProfileUI(); } }
-            else openModal('login-modal');
-        }
-
-        function doLogin() {
-            const email = document.getElementById('login-email').value.trim().toLowerCase();
-            const name = document.getElementById('login-name').value.trim();
-            if (!email || !name) return showToast("Preenche todos os campos", "var(--dgr)");
-            const db = getDB();
-            if (!db[email]) db[email] = { name: name, points: 1200, wins: 0, losses: 0 };
-            else if (db[email].name !== name) { if(!confirm("Atualizar nome?")) return; db[email].name = name; }
-            saveDB(db); currentUserEmail = email; localStorage.setItem('current_email', email);
-            closeModal('login-modal'); updateProfileUI(); showToast("Login efetuado!");
-        }
-
-        // --- ADMIN ---
-        let adminTargetEmail = null;
-        function openAdminLogin() { openModal('admin-login-modal'); }
-        function checkAdmin() {
-            if (document.getElementById('admin-pass').value === ADMIN_PASSWORD) { closeModal('admin-login-modal'); openModal('admin-dashboard'); }
-            else showToast("Password Incorreta", "var(--dgr)");
-        }
-        function searchPlayer() {
-            const search = document.getElementById('admin-search').value.trim().toLowerCase();
-            const db = getDB();
-            let found = null;
-            for (let email in db) { if (db[email].name.toLowerCase() === search) { found = email; break; } }
-            if (found) {
-                adminTargetEmail = found;
-                document.getElementById('admin-target-name').innerText = db[found].name;
-                document.getElementById('admin-target-pts').innerText = db[found].points;
-                document.getElementById('admin-result').style.display = 'block';
-            } else { showToast("Jogador não encontrado", "var(--dgr)"); document.getElementById('admin-result').style.display = 'none'; }
-        }
-        function modifyPoints(action) {
-            if (!adminTargetEmail) return showToast("Procura um jogador primeiro", "var(--dgr)");
-            const amt = parseInt(document.getElementById('admin-amount').value);
-            if (isNaN(amt) || amt <= 0) return showToast("Quantidade inválida", "var(--dgr)");
-            const db = getDB();
-            if (action === 'add') db[adminTargetEmail].points += amt;
-            else db[adminTargetEmail].points = Math.max(0, db[adminTargetEmail].points - amt);
-            saveDB(db); document.getElementById('admin-target-pts').innerText = db[adminTargetEmail].points;
-            document.getElementById('admin-amount').value = '';
-            if(currentUserEmail === adminTargetEmail) updateProfileUI();
-            showToast(`Pontos ${action === 'add' ? 'adicionados' : 'removidos'}!`);
-        }
-
-        // --- MOTOR DE XADREZ E RELÓGIO ---
-        const boardEl = document.getElementById('board');
-        let board = new Array(64).fill(null);
-        let turn = 'w', selectedSquare = null, legalMovesForSelected = [], history
+    <script src="script.js"></script>
+</body>
+</html>

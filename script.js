@@ -6,17 +6,15 @@ const ADMIN_PASSWORD = "admin";
 
 function showToast(msg, color = 'var(--accent)') {
     const toast = document.getElementById('toast');
-    toast.innerText = msg;
-    toast.style.background = color;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 3000);
+    toast.innerText = msg; toast.style.background = color;
+    toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
-function switchView(viewId) {
+function switchView(viewId, btnElement) {
     document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
     document.getElementById(viewId).classList.add('active');
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    if(event && event.currentTarget) event.currentTarget.classList.add('active');
+    if(btnElement) btnElement.classList.add('active');
 }
 
 function openModal(id) { document.getElementById(id).style.display = 'flex'; }
@@ -26,19 +24,12 @@ function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 function updateProfileUI() {
     const db = getDB();
     let name = "Convidado", pts = 1200, wins = 0, losses = 0;
-
     if (currentUserEmail && db[currentUserEmail]) {
-        name = db[currentUserEmail].name;
-        pts = db[currentUserEmail].points;
-        wins = db[currentUserEmail].wins || 0;
-        losses = db[currentUserEmail].losses || 0;
-    } else {
-        pts = parseInt(localStorage.getItem('guest_points') || '1200');
-    }
+        name = db[currentUserEmail].name; pts = db[currentUserEmail].points;
+        wins = db[currentUserEmail].wins || 0; losses = db[currentUserEmail].losses || 0;
+    } else { pts = parseInt(localStorage.getItem('guest_points') || '1200'); }
 
-    const total = wins + losses;
-    const winrate = total > 0 ? Math.round((wins / total) * 100) : 0;
-
+    const total = wins + losses, winrate = total > 0 ? Math.round((wins / total) * 100) : 0;
     document.getElementById('dash-name').innerText = name;
     document.getElementById('dash-avatar').innerText = name.charAt(0).toUpperCase();
     document.getElementById('dash-rating').innerText = pts;
@@ -47,7 +38,6 @@ function updateProfileUI() {
     document.getElementById('dash-wins-text').innerText = wins + ' Vitórias';
     document.getElementById('dash-losses-text').innerText = losses + ' Derrotas';
     document.getElementById('dash-winrate-bar').style.width = winrate + '%';
-
     document.getElementById('sidebar-avatar').innerText = name.charAt(0).toUpperCase();
     document.getElementById('game-name').innerText = name;
     document.getElementById('game-avatar').innerText = name.charAt(0).toUpperCase();
@@ -55,48 +45,31 @@ function updateProfileUI() {
 }
 
 function openLogin() {
-    if (currentUserEmail) {
-        if (confirm("Terminar sessão?")) {
-            currentUserEmail = null;
-            localStorage.removeItem('current_email');
-            updateProfileUI();
-        }
-    } else { openModal('login-modal'); }
+    if (currentUserEmail) { if (confirm("Terminar sessão?")) { currentUserEmail = null; localStorage.removeItem('current_email'); updateProfileUI(); } }
+    else openModal('login-modal');
 }
 
 function doLogin() {
     const email = document.getElementById('login-email').value.trim().toLowerCase();
     const name = document.getElementById('login-name').value.trim();
     if (!email || !name) return showToast("Preenche todos os campos", "var(--danger)");
-
     const db = getDB();
     if (!db[email]) db[email] = { name: name, points: 1200, wins: 0, losses: 0 };
-    else if (db[email].name !== name) {
-        if(!confirm("Nome diferente. Atualizar?")) return;
-        db[email].name = name;
-    }
-
-    saveDB(db);
-    currentUserEmail = email;
-    localStorage.setItem('current_email', email);
-    closeModal('login-modal');
-    updateProfileUI();
-    showToast("Login efetuado!");
+    else if (db[email].name !== name) { if(!confirm("Atualizar nome?")) return; db[email].name = name; }
+    saveDB(db); currentUserEmail = email; localStorage.setItem('current_email', email);
+    closeModal('login-modal'); updateProfileUI(); showToast("Login efetuado!");
 }
 
 // --- ADMIN ---
 let adminTargetEmail = null;
 function openAdminLogin() { openModal('admin-login-modal'); }
 function checkAdmin() {
-    if (document.getElementById('admin-pass').value === ADMIN_PASSWORD) {
-        closeModal('admin-login-modal'); openModal('admin-dashboard');
-    } else { showToast("Password Incorreta", "var(--danger)"); }
+    if (document.getElementById('admin-pass').value === ADMIN_PASSWORD) { closeModal('admin-login-modal'); openModal('admin-dashboard'); }
+    else showToast("Password Incorreta", "var(--danger)");
 }
-
 function searchPlayer() {
     const search = document.getElementById('admin-search').value.trim().toLowerCase();
-    const db = getDB();
-    let found = null;
+    const db = getDB(); let found = null;
     for (let email in db) { if (db[email].name.toLowerCase() === search) { found = email; break; } }
     if (found) {
         adminTargetEmail = found;
@@ -105,24 +78,20 @@ function searchPlayer() {
         document.getElementById('admin-result').style.display = 'block';
     } else { showToast("Jogador não encontrado", "var(--danger)"); document.getElementById('admin-result').style.display = 'none'; }
 }
-
 function modifyPoints(action) {
     if (!adminTargetEmail) return showToast("Procura um jogador primeiro", "var(--danger)");
     const amt = parseInt(document.getElementById('admin-amount').value);
     if (isNaN(amt) || amt <= 0) return showToast("Quantidade inválida", "var(--danger)");
-
     const db = getDB();
     if (action === 'add') db[adminTargetEmail].points += amt;
     else db[adminTargetEmail].points = Math.max(0, db[adminTargetEmail].points - amt);
-    
-    saveDB(db);
-    document.getElementById('admin-target-pts').innerText = db[adminTargetEmail].points;
+    saveDB(db); document.getElementById('admin-target-pts').innerText = db[adminTargetEmail].points;
     document.getElementById('admin-amount').value = '';
     if(currentUserEmail === adminTargetEmail) updateProfileUI();
     showToast(`Pontos ${action === 'add' ? 'adicionados' : 'removidos'}!`);
 }
 
-// --- MOTOR DE XADREZ E RELÓGIO ---
+// --- MOTOR DE XADREZ ---
 const boardEl = document.getElementById('board');
 let board = new Array(64).fill(null);
 let turn = 'w', selectedSquare = null, legalMovesForSelected = [], history = [], moveNumber = 1, isFlipped = false, gameMode = 'pvc', isGameOver = false, enPassantTarget = null, pendingPromotion = null;
@@ -150,12 +119,9 @@ function startClock() {
     updateClockUI();
     timerInterval = setInterval(() => {
         if (isGameOver) return;
-        if (turn === 'w') timeWhite--;
-        else timeBlack--;
-        
+        if (turn === 'w') timeWhite--; else timeBlack--;
         if (timeWhite <= 0 || timeBlack <= 0) {
-            isGameOver = true;
-            clearInterval(timerInterval);
+            isGameOver = true; clearInterval(timerInterval);
             showToast(`Tempo esgotado! Vencedor: ${timeWhite <= 0 ? 'Pretas' : 'Brancas'}`, "var(--danger)");
             updateStats(timeWhite <= 0 ? 'loss' : 'win');
         }
@@ -166,25 +132,18 @@ function startClock() {
 function updateClockUI() {
     const format = (t) => `${Math.floor(t / 60)}:${(t % 60).toString().padStart(2, '0')}`;
     const cTop = document.getElementById('clock-top'), cBot = document.getElementById('clock-bottom');
-    
     if (isFlipped) {
-        cTop.innerText = format(timeWhite);
-        cBot.innerText = format(timeBlack);
-        cTop.classList.toggle('active', turn === 'w');
-        cBot.classList.toggle('active', turn === 'b');
+        cTop.innerText = format(timeWhite); cBot.innerText = format(timeBlack);
+        cTop.classList.toggle('active', turn === 'w'); cBot.classList.toggle('active', turn === 'b');
     } else {
-        cTop.innerText = format(timeBlack);
-        cBot.innerText = format(timeWhite);
-        cTop.classList.toggle('active', turn === 'b');
-        cBot.classList.toggle('active', turn === 'w');
+        cTop.innerText = format(timeBlack); cBot.innerText = format(timeWhite);
+        cTop.classList.toggle('active', turn === 'b'); cBot.classList.toggle('active', turn === 'w');
     }
 }
 
 function startGame(mode) {
-    gameMode = mode;
-    switchView('play-view');
+    gameMode = mode; switchView('play-view');
     if (timerInterval) clearInterval(timerInterval);
-
     if (mode === 'online') {
         isOnlineGame = true;
         document.getElementById('opp-name').innerText = "À espera...";
@@ -193,11 +152,9 @@ function startGame(mode) {
         channel.onmessage = (e) => {
             const d = e.data;
             if (d.type === 'searching' && !myOnlineColor) {
-                myOnlineColor = 'white'; 
-                channel.postMessage({ type: 'match_found', color: 'black', name: "Oponente" }); 
-                startOnline("Oponente");
+                myOnlineColor = 'white'; channel.postMessage({ type: 'match_found', color: 'black' }); startOnline("Oponente");
             } else if (d.type === 'match_found') {
-                myOnlineColor = d.color; startOnline(d.name || "Oponente");
+                myOnlineColor = d.color; startOnline("Oponente");
             } else if (d.type === 'move' && isOnlineGame) {
                 applyOnlineMove(d.move);
             } else if (d.type === 'resign') {
@@ -207,7 +164,7 @@ function startGame(mode) {
     } else {
         isOnlineGame = false;
         document.getElementById('opp-name').innerText = "Computador (IA)";
-        document.getElementById('opp-rating').innerText = "1500 ELO (Casual)";
+        document.getElementById('opp-rating').innerText = "1500 ELO";
         isFlipped = false;
         initBoard();
     }
@@ -301,15 +258,12 @@ function checkGameState() {
         }
     }
     if (!hasMoves) {
-        isGameOver = true;
-        clearInterval(timerInterval);
+        isGameOver = true; clearInterval(timerInterval);
         if (isCheck(turn, board)) {
             const winColor = turn === 'w' ? 'Pretas' : 'Brancas';
             showToast(`Xeque-Mate! Vitória das ${winColor}`, "var(--success)");
             updateStats(turn === 'w' ? 'loss' : 'win');
-        } else {
-            showToast("Empate (Afogamento)");
-        }
+        } else { showToast("Empate (Afogamento)"); }
     }
     updateGameStatus();
 }
@@ -322,30 +276,22 @@ function renderBoard() {
     boardEl.innerHTML = '';
     const inCheck = !isGameOver && isCheck(turn, board);
     const kPos = board.indexOf(turn === 'w' ? 'K' : 'k');
-    
     for (let i = 0; i < 64; i++) {
-        const act = isFlipped ? (63 - i) : i;
-        const r = Math.floor(act / 8), c = act % 8;
+        const act = isFlipped ? (63 - i) : i, r = Math.floor(act / 8), c = act % 8;
         const sq = document.createElement('div');
         sq.className = `square ${(r + c) % 2 === 0 ? 'light' : 'dark'}`;
-        
         sq.setAttribute('data-file', String.fromCharCode(97 + c));
         sq.setAttribute('data-rank', 8 - r);
-
         if (selectedSquare === act) sq.style.backgroundColor = 'rgba(59, 130, 246, 0.5)';
-        
         if (history.length > 0) {
             const last = history[history.length-1];
             if (last && (last.from === act || last.to === act)) sq.classList.add('last-move');
         }
-        
         const move = legalMovesForSelected.find(m => m.to === act);
         if (move) sq.classList.add(move.captured ? 'highlight-capture' : 'highlight-dot');
         if (inCheck && act === kPos) sq.classList.add('in-check');
-        
         const p = board[act];
         if (p) sq.innerHTML = `<span class="piece ${p === p.toUpperCase() ? 'piece-w' : 'piece-b'}">${getPieceChar(p)}</span>`; 
-        
         sq.onclick = () => handleSquareClick(act);
         boardEl.appendChild(sq);
     }
@@ -401,7 +347,6 @@ function finalizeMove(move) {
     if (move.piece.toLowerCase() === 'p' && Math.abs(move.to - move.from) === 16) enPassantTarget = (move.to + move.from) / 2;
 
     const note = `${move.piece.toUpperCase()}${String.fromCharCode(97 + (move.from % 8))}${8 - Math.floor(move.from / 8)}-${String.fromCharCode(97 + (move.to % 8))}${8 - Math.floor(move.to / 8)}`;
-    
     if (turn === 'b') { 
         const li = document.createElement('li'); 
         li.innerHTML = `<span class="num">${moveNumber}.</span> <span class="move">${note}</span>`; 
@@ -416,13 +361,12 @@ function finalizeMove(move) {
     renderBoard(); checkGameState(); updateClockUI();
 
     if (isOnlineGame && channel) channel.postMessage({ type: 'move', move: move });
-    
-    // IA (Apenas no modo Casual/PvC)
     if (gameMode === 'pvc' && turn === 'b' && !isGameOver) {
         setTimeout(makeAIMove, 500);
     }
 }
 
+// --- UI E CONTROLO ---
 function toggleHistoryMobile() { document.getElementById('game-sidebar').classList.toggle('open'); }
 
 let confirmCallback = null;
@@ -438,15 +382,12 @@ function closeConfirm(isOk) {
 }
 
 function askNewGame() { showConfirm("Novo Jogo", "Queres reiniciar a partida?", () => initBoard()); }
-
 function askResign() {
     if (isGameOver) return;
     showConfirm("Desistir", "Tens a certeza? Vais perder.", () => {
-        isGameOver = true;
-        clearInterval(timerInterval);
+        isGameOver = true; clearInterval(timerInterval);
         if (isOnlineGame && channel) channel.postMessage({ type: 'resign' });
-        updateStats('loss');
-        showToast("Desististe. Derrota.", "var(--danger)");
+        updateStats('loss'); showToast("Desististe. Derrota.", "var(--danger)");
     });
 }
 
@@ -460,8 +401,7 @@ function updateStats(result) {
         let pts = parseInt(localStorage.getItem('guest_points') || '1200');
         if (result === 'win') pts += 20;
         if (result === 'loss') pts = Math.max(0, pts - 15);
-        localStorage.setItem('guest_points', pts);
-        updateProfileUI();
+        localStorage.setItem('guest_points', pts); updateProfileUI();
     }
 }
 
@@ -469,19 +409,16 @@ function updateStats(result) {
 function makeAIMove() {
     if (isGameOver) return;
     let best = null, bestScore = -Infinity;
-    
     for (let i = 0; i < 64; i++) {
         const p = board[i];
-        if (p && p === p.toLowerCase()) { // Peças pretas
+        if (p && p === p.toLowerCase()) {
             const moves = getLegalMoves(i, p, board, enPassantTarget);
             for (let m of moves) {
                 const tb = [...board]; tb[m.to] = m.piece; tb[m.from] = null;
                 if (m.isEnPassant) tb[m.to - 8] = null;
-                
                 let sc = evalBoard(tb);
-                if (isCheck('b', tb)) sc -= 50; // Penaliza se o rei ficar em xeque
-                sc += Math.random() * 10; // Aleatoriedade para não ser sempre igual
-                
+                if (isCheck('b', tb)) sc -= 50;
+                sc += Math.random() * 10;
                 if (sc > bestScore) { bestScore = sc; best = m; }
             }
         }
@@ -494,8 +431,8 @@ function evalBoard(cb) {
     for (let p of cb) {
         if (p) {
             const v = pieceValues[p.toLowerCase()];
-            if (p === p.toLowerCase()) sc += v; // Pontos para pretas
-            else sc -= v; // Pontos para brancas
+            if (p === p.toLowerCase()) sc += v;
+            else sc -= v;
         }
     }
     return sc;
